@@ -14,7 +14,6 @@ import { initIds } from "./ids.js"
 import { initReminder } from "./reminder.js"
 import { initReactions } from "./reactions.js"
 import { initHelp } from "./help.js"
-import { initStorage } from "./storage.js"
 import { initTicketCategory } from "./ticket_category.js"
 import fs from "fs"
 
