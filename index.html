@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kekse Clan Bot Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <link rel="icon" href="icon.png" type="image/png">
+  </head>
+  <body>
+    <nav class="navbar">
+      <div id="top">
+        <img src="icon.png" alt="Logo" id="logo">
+        <h1>Kekse Clan Bot</h1>
+      </div>
+      <div id="cathegories">
+        <div id="Link-Dashboard">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="12" rx="2"></rect>
+            <path d="M2 18h20"></path>
+          </svg>
+          Dashboard
+        </div>
+        <div id="Link-Ticket-Archive">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7a2 2 0 0 1 2-2h2a2 2 0 0 0 4 0h2a2 2 0 0 0 4 0h2a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2h-2a2 2 0 0 0-4 0h-2a2 2 0 0 0-4 0H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7z"></path>
+          </svg> 
+          Ticket Archive
+        </div>
+      </div>
+    </nav>
+    <main>
+      <div id="dashboard">
+        <div class="panel">
+          <h2><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 16V3"></path>
+              <path d="M7 8l5-5 5 5"></path>
+              <rect x="3" y="16" width="18" height="5" rx="2"></rect>
+            </svg>
+Commands</h2>
+          <select id="command-select">
+            <option value="">Command Wählen</option>
+            <option value="!send">!send</option>
+            <option value="!embed">!embed</option>
+            <option value="!dm">!dm</option>
+            <option value="!timeout">!timeout</option>
+            <option value="!untimeout">!untimeout</option>
+            <option value="!kick">!kick</option>
+            <option value="!ban">!ban</option>
+            <option value="!unban">!unban</option>
+            <option value="!warn">!warn</option>
+            <option value="!warns">!warns</option>
+            <option value="!warn_remove">!warn_remove</option>
+            <option value="!ticket">!ticket</option>
+            <option value="!ticket_panel">!ticket_panel</option>
+            <option value="!close">!close</option>
+            <option value="!giveaway">!giveaway</option>
+            <option value="!top">!top</option>
+            <option value="!ping">!ping</option>
+          </select>
+          <select id="channel" style="display: none;"></select>
+          <select id="user" style="display: none;"></select>
+          <input type="text" id="price" style="display: none;">
+          <select id="whitelist" style="display: none;"></select>
+          <select id="blacklist" style="display: none;"></select>
+          <input type="text" id="titel" style="display: none;">
+          <input type="text" id="text" style="display: none;">
+          <input type="number" id="number" style="display: none;">
+          <input type="text" id="duration" style="display: none;">
+          <input type="color" id="color" style="display: none;">
+          <input type="text" id="reason" style="display: none;">
+          <select id="category" style="display: none;">
+            <option value="">Kategorie Wählen</option>
+            <option value="Support">Support</option>
+            <option value="Abholung">Abholung</option>
+            <option value="Bewerbung">Bewerbung</option>
+          </select>
+          <button id="send">Senden</button>
+          <div id="info">
+          </div>
+        </div>
+        <div class="panel">
+          <h2><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="12" rx="2"></rect>
+              <path d="M2 18h20"></path>
+            </svg>
+Console</h2>
+          <div id="console-output">
+          </div>
+        </div>
+      </div>
+      <div id="ticket-archive">
+        <h1>Ticket Archive</h1>
+        <div id="ticket-list">
+        </div>
+        <div id="ticket-preview">
+        </div>
+      </div>
+    </main>
+  </body>
+  <script src="index.js"></script>
+</html>
