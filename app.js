@@ -1,0 +1,96 @@
+import { Client, GatewayIntentBits, Partials } from "discord.js"
+import "dotenv/config"
+import express from "express"
+import path from "path"
+import { fileURLToPath } from "url"
+
+import { initCounting } from "./counting.js"
+import { initModeration } from "./moderation.js"
+import { registerMessageCommands } from "./messages.js"
+import { initTickets } from "./dtickets.js"
+import { initGiveaway } from "./giveaway.js"
+import { initPing } from "./ping.js"
+import { initIds } from "./ids.js"
+import { initReminder } from "./reminder.js"
+import { initReactions } from "./reactions.js"
+import { initHelp } from "./help.js"
+import { initTicketCategory } from "./ticket_category.js"
+import fs from "fs"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const LOG_DIR = path.join(__dirname, "log-files");
+if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+
+function getLogFile() {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return path.join(LOG_DIR, `logs-${day}-${month}-${year}.txt`);
+}
+
+const originalLog = console.log;
+const originalError = console.error;
+
+function writeToFile(prefix, args) {
+  const timestamp = new Date().toLocaleString();
+  const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
+  const logEntry = `[${timestamp}] [${prefix}] ${message}\n`;
+  fs.appendFileSync(getLogFile(), logEntry, "utf8");
+}
+
+console.log = (...args) => {
+  originalLog(...args);
+  writeToFile("INFO", args);
+};
+
+console.error = (...args) => {
+  originalError(...args);
+  writeToFile("ERROR", args);
+};
+
+const app = express()
+app.use("/Kekse-Clan-Bot", express.static(path.join(__dirname, "public")))
+
+const PORT = process.env.PORT || 5000
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server läuft auf Port ${PORT}`)
+})
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers
+  ],
+  partials: [Partials.Channel, Partials.Message, Partials.Reaction]
+})
+
+import { initStorage } from "./storage.js"
+
+client.once("clientReady", async () => {
+  await initStorage(client)
+  await initCounting(client)
+  initModeration(client)
+  registerMessageCommands(client)
+  initTickets(client)
+  initGiveaway(client)
+  initPing(client)
+  await initIds(client)
+  initReminder(client)
+  initReactions(client)
+  initHelp(client)
+  initTicketCategory(client)
+  
+  client.user.setPresence({
+    activities: [{ name: "!help", type: 0 }],
+    status: "online"
+  });
+  console.log(`Bot online: ${client.user.tag}`);
+});
+
+client.login(process.env.BOT_TOKEN)
