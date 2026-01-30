@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits, Partials } from "discord.js"
 import "dotenv/config"
 import path from "path"
+import express from "express"
 import { fileURLToPath } from "url"
 
 import { initCounting } from "./counting.js"
@@ -50,12 +51,11 @@ console.error = (...args) => {
   writeToFile("ERROR", args);
 };
 
-const express = require('express')
 const app = express()
 app.use("/Kekse-Clan-Bot", express.static(path.join(__dirname, "public")))
 const port = process.env.PORT || 4000
 app.listen(port, () => {
-  console.log(`Server läuft auf Port ${PORT}`)
+  console.log(`Server läuft auf Port ${port}`)
 })
 app.get('/', (req, res) => {
   res.send('Hello World!')
