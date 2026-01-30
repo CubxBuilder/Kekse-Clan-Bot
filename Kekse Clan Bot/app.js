@@ -51,12 +51,15 @@ console.error = (...args) => {
   writeToFile("ERROR", args);
 };
 
+const express = require('express')
 const app = express()
 app.use("/Kekse-Clan-Bot", express.static(path.join(__dirname, "public")))
-
-const PORT = process.env.PORT || 5000
+const port = process.env.PORT || 4000
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server läuft auf Port ${PORT}`)
+})
+app.get('/', (req, res) => {
+  res.send('Hello World!')
 })
 
 const client = new Client({
