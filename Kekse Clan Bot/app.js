@@ -38,7 +38,7 @@ function writeToFile(prefix, args) {
   const timestamp = new Date().toLocaleString();
   const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
   const logEntry = `[${timestamp}] [${prefix}] ${message}\n`;
-  fs.appendFileSync(getLogFile(), logEntry, "utf8");
+  fs.appendFile(getLogFile(), logEntry, () => {})
 }
 
 console.log = (...args) => {
@@ -94,6 +94,5 @@ client.once("ready", async () => {
 });
 client.on("error", console.error)
 client.on("warn", console.warn)
-client.login(process.env.BOT_TOKEN)
 console.log("TOKEN:", process.env.BOT_TOKEN ? "OK" : "MISSING")
-
+client.login(process.env.BOT_TOKEN)
