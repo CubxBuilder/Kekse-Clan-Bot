@@ -72,7 +72,7 @@ const client = new Client({
 
 import { initStorage } from "./storage.js"
 
-client.once("clientReady", async () => {
+client.once("ready", async () => {
   await initStorage(client)
   await initCounting(client)
   initModeration(client)
@@ -92,5 +92,8 @@ client.once("clientReady", async () => {
   });
   console.log(`Bot online: ${client.user.tag}`);
 });
-
+client.on("error", console.error)
+client.on("warn", console.warn)
 client.login(process.env.BOT_TOKEN)
+console.log("TOKEN:", process.env.BOT_TOKEN ? "OK" : "MISSING")
+
