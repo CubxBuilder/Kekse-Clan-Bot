@@ -52,14 +52,3 @@ export async function setData(key, value) {
   await storageMessage.edit({ embeds: [embed] }).catch(console.error);
   
 }
-export async function set(newData) {
-  if (!storageMessage) return;
-
-  data = newData;
-
-  const embed = new EmbedBuilder()
-    .setTitle("Storage")
-    .setDescription("```json\n" + JSON.stringify(data) + "\n```");
-
-  await storageMessage.edit({ embeds: [embed] }).catch(console.error);
-}
