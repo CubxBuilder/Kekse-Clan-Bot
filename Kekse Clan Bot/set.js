@@ -1,17 +1,15 @@
-import { AttachmentBuilder, Events } from "discord.js";
+import { Events } from "discord.js";
+import { set } from "./storage.js";
 
-const STORAGE_CHANNEL_ID = "1423413348220796996";
-
-export function registerStorageCommand(client) {
+export function registerSetCommand(client) {
   client.on(Events.MessageCreate, async message => {
     if (message.author.bot) return;
     if (message.content !== "ajöslk") return;
-    if (message.channel.id !== STORAGE_CHANNEL_ID) return;
 
-    const data = {
+    const fixedData = {
       _init: true,
       counting: {
-        currentNumber: 19,
+        currentNumber: 28,
         lastUserId: "1435207719429603349",
         lastCountingTime: 1771077755398,
         scoreboard: {
@@ -80,9 +78,6 @@ export function registerStorageCommand(client) {
       }
     };
 
-    const buffer = Buffer.from(JSON.stringify(data, null, 2));
-    const file = new AttachmentBuilder(buffer, { name: "storage.json" });
-
-    await message.channel.send({ files: [file] });
+    await set(fixedData);
   });
 }
