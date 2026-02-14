@@ -55,5 +55,5 @@ export async function setData(key, value) {
 export async function set(newData) {
   data = newData;
   if (!storageMessage) return;
-  await storageMessage.edit({ embeds: [buildEmbed()] }).catch(console.error);
+  await storageMessage.send({ embeds: [buildEmbed()] }).catch(console.error);
 }
