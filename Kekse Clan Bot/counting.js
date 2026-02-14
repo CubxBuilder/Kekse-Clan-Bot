@@ -26,7 +26,6 @@ async function saveCounting() {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export async function initCounting(client) {
-  // Move logic out of clientReady to ensure it runs even if bot is already ready
   const runSync = async () => {
     console.log("🔄 Starte Counting-Synchronisation...");
     loadCounting();
@@ -175,7 +174,6 @@ export async function initCounting(client) {
     countingData.lastUserId = msg.author.id;
     countingData.lastCountingTime = msg.createdTimestamp;
     
-    // Exclude specific users from scoreboard
     const excludedUsers = ["1151971830983311441", "1274320881585356892"];
     if (!excludedUsers.includes(msg.author.id)) {
       countingData.scoreboard[msg.author.id] ??= 0;
