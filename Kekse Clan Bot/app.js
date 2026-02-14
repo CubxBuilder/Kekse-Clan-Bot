@@ -15,7 +15,6 @@ import { initReminder } from "./reminder.js"
 import { initReactions } from "./reactions.js"
 import { initHelp } from "./help.js"
 import { initTicketCategory } from "./ticket_category.js"
-import { sendHeartbeat } from "./heartbeat.js"
 import fs from "fs"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -88,7 +87,6 @@ client.once("ready", async () => {
   initReactions(client)
   initHelp(client)
   initTicketCategory(client)
-  sendHeartbeat()
   
   client.user.setPresence({
     activities: [{ name: "!help", type: 0 }],
