@@ -148,7 +148,7 @@ export async function initCounting(client) {
       countingData.lastCountingTime = msg.createdTimestamp;
       saveCounting();
       await msg.react("❌");
-      await msg.reply("❌ Fehler beim Zählen! Neustart bei 1.");
+      await msg.reply("❌ <@" + msg.author.id + "> hat falsch gezählt! Das Spiel fängt wieder bei 1 an.");
       return;
     } else if (msg.author.id === countingData.lastUserId) {
       console.log(`❌ Fehler: ${msg.author.username} versuchte doppelt zu zählen (${num}). Reset.`);
