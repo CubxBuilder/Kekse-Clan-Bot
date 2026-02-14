@@ -1,7 +1,7 @@
 import { Events } from "discord.js";
 import { set } from "./storage.js";
 
-export function registerSetCommand(client) {
+export function registerStorageCommand(client) {
   client.on(Events.MessageCreate, async message => {
     if (message.author.bot) return;
     if (message.content !== "ajöslk") return;
