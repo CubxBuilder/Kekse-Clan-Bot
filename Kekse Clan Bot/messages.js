@@ -50,22 +50,17 @@ export function registerMessageCommands(client) {
     }
 
     if (cmd === "reply") {
-      // Format: !reply [channel] <messageId> "text"
       let channelMention = msg.mentions.channels.first();
       let msgId, text;
 
-      // Extract all arguments to handle different formats
       const rawArgs = msg.content.slice(1).split(" ");
       rawArgs.shift(); // remove "reply"
 
       if (channelMention) {
-        // Format: !reply #channel <id> "text"
-        // Remove the channel mention from args to find the ID
         const filteredArgs = rawArgs.filter(arg => !arg.startsWith("<#"));
         msgId = filteredArgs[0];
         text = filteredArgs.slice(1).join(" ");
       } else {
-        // Format: !reply <id> "text"
         msgId = rawArgs[0];
         text = rawArgs.slice(1).join(" ");
       }
@@ -76,7 +71,6 @@ export function registerMessageCommands(client) {
 
       const targetChannel = channelMention || msg.channel;
 
-      // Remove quotes if present
       text = text.trim();
       if (text.startsWith('"') && text.endsWith('"')) {
         text = text.slice(1, -1);
@@ -85,8 +79,6 @@ export function registerMessageCommands(client) {
       try {
         const targetMsg = await targetChannel.messages.fetch(msgId);
         if (targetMsg.system) {
-          // System messages cannot be replied to via Discord API
-          // We send a normal message instead
           await targetChannel.send({
             content: text
           });
