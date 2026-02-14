@@ -6,7 +6,6 @@ export function initReactions(client) {
   client.on("messageCreate", async message => {
     if (message.author.bot) return;
 
-    // Boost Message Recognition
     if (message.type === MessageType.GuildBoost || 
         message.type === MessageType.GuildBoostTier1 || 
         message.type === MessageType.GuildBoostTier2 || 
