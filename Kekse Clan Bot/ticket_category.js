@@ -1,5 +1,3 @@
-// ticket_category.js
-
 const TRIGGERS = [
   "bot reagiert", "bot funzt", "bot geht", "keine reaktion vom bot",
   "bot antwortet", "bot macht nix", "ticket wird erstellt", "ticket öffnet",
@@ -33,19 +31,16 @@ export function initTicketCategory(client) {
 
     const channel = msg.channel;
 
-    // Prüfen, ob der Channel in der Support-Category liegt
     if (!channel.parentId || channel.parentId !== SUPPORT_CATEGORY) return;
 
     const content = msg.content.toLowerCase();
 
-    // Trigger prüfen
     const foundTrigger = TRIGGERS.find(trigger => content.includes(trigger));
     if (!foundTrigger) return;
 
     if (askedUsers.has(msg.author.id)) return;
     askedUsers.add(msg.author.id);
 
-    // Sprache erkennen (einfach: die ersten 31 German triggers)
     const germanTriggers = TRIGGERS.slice(0, 31);
     const isGerman = germanTriggers.includes(foundTrigger);
 
