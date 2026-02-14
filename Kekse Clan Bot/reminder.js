@@ -13,7 +13,6 @@ export function initReminder(client) {
   }
 
   function parseAbsoluteTime(str) {
-    // mm:hh;TT.MM.YYYY
     const [timePart, datePart] = str.split(";");
     if (!timePart || !datePart) return null;
     const [mm, hh] = timePart.split(":").map(Number);
