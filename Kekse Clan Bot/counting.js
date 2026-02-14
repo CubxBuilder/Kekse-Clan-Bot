@@ -137,15 +137,6 @@ export async function initCounting(client) {
         saveCounting();
         return msg.reply(`✅ Die nächste Zahl wurde auf **${newNum}** gesetzt.`);
       }
-
-      if (msg.content.startsWith("!remove_score")) {
-        if (msg.author.id !== "1151971830983311441") return;
-        const user = msg.mentions.users.first() || { id: msg.content.split(" ")[1] };
-        if (!user.id || !countingData.scoreboard[user.id]) return msg.reply("❌ User nicht im Scoreboard gefunden.");
-        delete countingData.scoreboard[user.id];
-        saveCounting();
-        return msg.reply(`✅ Score für <@${user.id}> wurde gelöscht.`);
-      }
       return;
     }
     const num = parseInt(match[0]);
