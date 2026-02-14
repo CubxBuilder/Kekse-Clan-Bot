@@ -50,4 +50,8 @@ export async function setData(key, value) {
     .setDescription("```json\n" + jsonString + "\n```");
 
   await storageMessage.edit({ embeds: [embed] }).catch(console.error);
+  export async function set(newData) {
+  data = newData;
+  if (!storageMessage) return;
+  await storageMessage.edit({ embeds: [buildEmbed()] }).catch(console.error);
 }
