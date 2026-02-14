@@ -53,7 +53,13 @@ export async function setData(key, value) {
   
 }
 export async function set(newData) {
-  data = newData;
   if (!storageMessage) return;
-  await storageMessage.send({ embeds: [buildEmbed()] }).catch(console.error);
+
+  data = newData;
+
+  const embed = new EmbedBuilder()
+    .setTitle("Storage")
+    .setDescription("```json\n" + JSON.stringify(data) + "\n```");
+
+  await storageMessage.edit({ embeds: [embed] }).catch(console.error);
 }
