@@ -44,7 +44,7 @@ export function initModeration(client) {
             case "h": durationMs = amount * 60 * 60 * 1000; break;
           }
         } else {
-          durationMs = parseInt(durationStr) * 1000; // Default to seconds if only number
+          durationMs = parseInt(durationStr) * 1000;
         }
       }
 
