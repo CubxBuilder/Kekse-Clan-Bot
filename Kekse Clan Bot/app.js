@@ -72,7 +72,7 @@ const client = new Client({
   ],
   partials: [Partials.Channel, Partials.Message, Partials.Reaction]
 })
-
+client.setMaxListeners(20);
 import { initStorage } from "./storage.js"
 
 client.once("ready", async () => {
