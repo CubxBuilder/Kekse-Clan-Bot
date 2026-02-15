@@ -154,7 +154,7 @@ async function closePoll(client, poll, polls) {
   let optionsText = poll.options.map(o => `${o.emoji} ${o.text}`).join("\n");
 
   const pollContent = `## ${poll.question}\n${poll.description}\n\n${optionsText}\n\n` +
-    `<:checkmark:1467245996584210554> Geendet am: <t:${Math.floor(poll.endTime / 1000)}:f>\n` +
+    `<:info:1467246059561685238> Geendet am: <t:${Math.floor(poll.endTime / 1000)}:f>\n` +
     `<:profil:1467246030998343733> Erstellt von: <@${poll.creatorId}>\n` +
     `<:statistiques:1467246038497886311> Teilnehmer: ${totalVoters}\n` +
     `<:identifiant:1467246041668780227> ID: ${poll.id}`;
@@ -162,15 +162,25 @@ async function closePoll(client, poll, polls) {
   await pollMsg.edit(pollContent);
   await pollMsg.reactions.removeAll().catch(() => {});
 
-  let resultsText = `<:statistiques:1467246038497886311> **Ergebnisse für: ${poll.question}** (ID: ${poll.id})\n\n`;
+  let resultsText = `**Ergebnisse für: ${poll.question}** (ID: ${poll.id})\n\n`;
   if (totalVoters === 0) {
     resultsText += "Es hat niemand an der Umfrage teilgenommen.";
   } else {
-    poll.options.forEach(o => {
-      const percentage = totalVoters > 0 ? Math.round((o.votes / totalVoters) * 100) : 0;
-      resultsText += `${o.emoji} **${o.text}**: ${o.votes} Stimmen (${percentage}%)\n`;
-    });
-    resultsText += `\nGesamtteilnehmer: ${totalVoters}`;
+    const highestPercentage = totalVoters > 0
+  ? Math.max(...poll.options.map(o => Math.round((o.votes / totalVoters) * 100)))
+  : 0;
+
+poll.options.forEach(o => {
+  const percentage = totalVoters > 0
+    ? Math.round((o.votes / totalVoters) * 100)
+    : 0;
+
+  const winnerMark = percentage === highestPercentage && highestPercentage > 0 ? " 🏆" : "";
+
+  resultsText += `${o.emoji} **${o.text}**: ${o.votes} Stimmen (${percentage}%)${winnerMark}\n`;
+});
+
+resultsText += `\nGesamtteilnehmer: ${totalVoters}`;
   }
 
   await channel.send(resultsText);
