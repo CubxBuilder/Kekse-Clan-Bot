@@ -83,21 +83,24 @@ export function initPoll(client) {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch();
 
-    const data = await getData();
+    const data = await getData() || {};
     const poll = data.polls?.find(p => p.messageId === reaction.message.id && !p.closed);
     if (!poll) return;
 
     const option = poll.options.find(o => o.emoji === reaction.emoji.name);
     if (!option) return;
 
-    const voter = poll.voters.find(v => v.userId === user.id);
-    if (voter) {
+    const voterIndex = poll.voters.findIndex(v => v.userId === user.id);
+    if (voterIndex !== -1) {
       return; 
     }
 
     poll.voters.push({ userId: user.id, choices: [option.emoji] });
     option.votes++;
-    await reaction.users.remove(user.id);
+    
+    try {
+      await reaction.users.remove(user.id);
+    } catch (e) {}
 
     const totalVoters = poll.voters.length;
     let optionsText = poll.options.map(o => `${o.emoji} ${o.text}`).join("\n");
@@ -152,11 +155,15 @@ async function closePoll(client, poll, data) {
   await pollMsg.reactions.removeAll().catch(() => {});
 
   let resultsText = `<:statistiques:1467246038497886311> **Ergebnisse für: ${poll.question}** (ID: ${poll.id})\n\n`;
-  poll.options.forEach(o => {
-    const percentage = totalVoters > 0 ? Math.round((o.votes / totalVoters) * 100) : 0;
-    resultsText += `${o.emoji} **${o.text}**: ${o.votes} Stimmen (${percentage}%)\n`;
-  });
-  resultsText += `\nGesamtteilnehmer: ${totalVoters}`;
+  if (totalVoters === 0) {
+    resultsText += "Es hat niemand an der Umfrage teilgenommen.";
+  } else {
+    poll.options.forEach(o => {
+      const percentage = totalVoters > 0 ? Math.round((o.votes / totalVoters) * 100) : 0;
+      resultsText += `${o.emoji} **${o.text}**: ${o.votes} Stimmen (${percentage}%)\n`;
+    });
+    resultsText += `\nGesamtteilnehmer: ${totalVoters}`;
+  }
 
   await channel.send(resultsText);
   await setData(data);
