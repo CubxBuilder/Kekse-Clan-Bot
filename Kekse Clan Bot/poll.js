@@ -32,10 +32,10 @@ export function initPoll(client) {
       const endTime = Date.now() + time * 60000;
 
       const pollContent = `## ${question}\n${description}\n\n${optionsText}\n\n` +
-        `⏳ Endet am: <t:${Math.floor(endTime / 1000)}:R>\n` +
-        `👤 Erstellt von: ${msg.author}\n` +
-        `📊 Teilnehmer: 0\n` +
-        `🆔 ID: ${pollId}`;
+        `<:info:1467246059561685238> Endet am: <t:${Math.floor(endTime / 1000)}:R>\n` +
+        `<:profil:1467246030998343733> Erstellt von: ${msg.author}\n` +
+        `<:statistiques:1467246038497886311> Teilnehmer: 0\n` +
+        `<:identifiant:1467246041668780227> ID: ${pollId}`;
 
       const pollMsg = await msg.channel.send(pollContent);
       for (let i = 0; i < pollOptions.length; i++) {
@@ -78,7 +78,7 @@ export function initPoll(client) {
       if (activePolls.length === 0) return msg.reply("Keine aktiven Polls.");
 
       const list = activePolls.map(p => `ID: ${p.id} | ${p.question}`).join("\n");
-      msg.reply(`📊 **Aktive Polls:**\n${list}`);
+      msg.reply(`<:statistiques:1467246038497886311> **Aktive Polls:**\n${list}`);
     }
   });
 
@@ -107,10 +107,10 @@ export function initPoll(client) {
     const endTime = poll.endTime;
 
     const pollContent = `## ${poll.question}\n${poll.description}\n\n${optionsText}\n\n` +
-      `⏳ Endet am: <t:${Math.floor(endTime / 1000)}:R>\n` +
-      `👤 Erstellt von: <@${poll.creatorId}>\n` +
-      `📊 Teilnehmer: ${totalVoters}\n` +
-      `🆔 ID: ${poll.id}`;
+      `<:info:1467246059561685238> Endet am: <t:${Math.floor(endTime / 1000)}:R>\n` +
+      `<:profil:1467246030998343733> Erstellt von: <@${poll.creatorId}>\n` +
+      `<:statistiques:1467246038497886311> Teilnehmer: ${totalVoters}\n` +
+      `<:identifiant:1467246041668780227> ID: ${poll.id}`;
 
     await reaction.message.edit(pollContent);
     await setData(data);
@@ -146,15 +146,15 @@ async function closePoll(client, poll, data) {
   let optionsText = poll.options.map(o => `${o.emoji} ${o.text}`).join("\n");
 
   const pollContent = `## ${poll.question}\n${poll.description}\n\n${optionsText}\n\n` +
-    `✅ Geendet am: <t:${Math.floor(poll.endTime / 1000)}:f>\n` +
-    `👤 Erstellt von: <@${poll.creatorId}>\n` +
-    `📊 Teilnehmer: ${totalVoters}\n` +
-    `🆔 ID: ${poll.id}`;
+    `<:checkmark:1467245996584210554> Geendet am: <t:${Math.floor(poll.endTime / 1000)}:f>\n` +
+    `<:profil:1467246030998343733> Erstellt von: <@${poll.creatorId}>\n` +
+    `<:statistiques:1467246038497886311> Teilnehmer: ${totalVoters}\n` +
+    `<:identifiant:1467246041668780227> ID: ${poll.id}`;
 
   await pollMsg.edit(pollContent);
   await pollMsg.reactions.removeAll().catch(() => {});
 
-  let resultsText = `📊 **Ergebnisse für: ${poll.question}** (ID: ${poll.id})\n\n`;
+  let resultsText = `<:statistiques:1467246038497886311> **Ergebnisse für: ${poll.question}** (ID: ${poll.id})\n\n`;
   poll.options.forEach(o => {
     const percentage = totalVoters > 0 ? Math.round((o.votes / totalVoters) * 100) : 0;
     resultsText += `${o.emoji} **${o.text}**: ${o.votes} Stimmen (${percentage}%)\n`;
