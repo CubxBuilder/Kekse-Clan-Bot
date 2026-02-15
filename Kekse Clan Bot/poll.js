@@ -175,7 +175,7 @@ poll.options.forEach(o => {
     ? Math.round((o.votes / totalVoters) * 100)
     : 0;
 
-  const winnerMark = percentage === highestPercentage && highestPercentage > 0 ? " 🏆" : "";
+  const winnerMark = percentage === highestPercentage && highestPercentage > 0 ? " <:checkmark:1467245996584210554>" : "";
 
   resultsText += `${o.emoji} **${o.text}**: ${o.votes} Stimmen (${percentage}%)${winnerMark}\n`;
 });
