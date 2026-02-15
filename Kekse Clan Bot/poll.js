@@ -21,7 +21,7 @@ export function initPoll(client) {
 
       const data = await getData() || {};
       data.polls = data.polls || [];
-      const pollId = data.polls.length + 1;
+      const pollId = msg.id;
 
       const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
       const pollOptions = options.map((opt, i) => ({ text: opt, emoji: emojis[i], votes: 0 }));
