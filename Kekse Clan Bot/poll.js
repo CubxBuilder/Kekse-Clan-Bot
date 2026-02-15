@@ -1,0 +1,166 @@
+import { EmbedBuilder } from "discord.js";
+import { getData, setData } from "./storage.js";
+const TEAM_ROLE_ID = "1457906448234319922";
+export function initPoll(client) {
+  client.on("messageCreate", async (msg) => {
+    if (msg.author.bot || !msg.content.startsWith("!")) return;
+    if (!msg.member.roles.cache.has(TEAM_ROLE_ID))
+      return msg.channel.send("❌ Du hast keine Berechtigung, eine Umfrage zu starten.");
+    const args = msg.content.slice(1).match(/(?:[^\s,]+|"[^"]*")+/g)?.map(a => a.replace(/"/g, "").trim()) || [];
+    const cmd = args.shift()?.toLowerCase();
+
+    if (cmd === "poll") {
+      const rawArgs = msg.content.slice(6).split(",").map(a => a.trim());
+      if (rawArgs.length < 5) return msg.reply("❌ Nutzung: `!poll Frage, Zeit (Minuten), MaxStimmen, Beschreibung, Antwort 1, Antwort 2, ...` (min. 2 Antworten)");
+
+      const [question, timeStr, maxChoicesStr, description, ...options] = rawArgs;
+      const time = parseInt(timeStr);
+      const maxChoices = parseInt(maxChoicesStr);
+
+      if (isNaN(time) || isNaN(maxChoices) || options.length < 2 || options.length > 10) {
+        return msg.reply("❌ Ungültige Parameter. Min. 2 Antworten, Max. 10.");
+      }
+
+      const data = await getData();
+      data.polls = data.polls || [];
+      const pollId = data.polls.length + 1;
+
+      const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+      const pollOptions = options.map((opt, i) => ({ text: opt, emoji: emojis[i], votes: 0 }));
+
+      let optionsText = pollOptions.map(o => `${o.emoji} ${o.text}`).join("\n");
+      const endTime = Date.now() + time * 60000;
+
+      const pollContent = `## ${question}\n${description}\n\n${optionsText}\n\n` +
+        `⏳ Endet am: <t:${Math.floor(endTime / 1000)}:R>\n` +
+        `👤 Erstellt von: ${msg.author}\n` +
+        `📊 Teilnehmer: 0\n` +
+        `🆔 ID: ${pollId}`;
+
+      const pollMsg = await msg.channel.send(pollContent);
+      for (let i = 0; i < pollOptions.length; i++) {
+        await pollMsg.react(pollOptions[i].emoji);
+      }
+
+      const pollData = {
+        id: pollId,
+        messageId: pollMsg.id,
+        channelId: msg.channel.id,
+        question,
+        description,
+        options: pollOptions,
+        maxChoices,
+        endTime,
+        creatorId: msg.author.id,
+        voters: [],
+        closed: false
+      };
+
+      data.polls.push(pollData);
+      await setData(data);
+    }
+
+    if (cmd === "closepoll") {
+      const pollId = parseInt(args[0]);
+      if (isNaN(pollId)) return msg.reply("❌ Bitte gib eine gültige Poll-ID an.");
+
+      const data = await getData();
+      const poll = data.polls?.find(p => p.id === pollId);
+      if (!poll || poll.closed) return msg.reply("❌ Poll nicht gefunden oder bereits geschlossen.");
+
+      await closePoll(client, poll, data);
+      msg.reply(`✅ Poll #${pollId} wurde geschlossen.`);
+    }
+
+    if (cmd === "listpolls") {
+      const data = await getData();
+      const activePolls = data.polls?.filter(p => !p.closed) || [];
+      if (activePolls.length === 0) return msg.reply("Keine aktiven Polls.");
+
+      const list = activePolls.map(p => `ID: ${p.id} | ${p.question}`).join("\n");
+      msg.reply(`📊 **Aktive Polls:**\n${list}`);
+    }
+  });
+
+  client.on("messageReactionAdd", async (reaction, user) => {
+    if (user.bot) return;
+    if (reaction.partial) await reaction.fetch();
+
+    const data = await getData();
+    const poll = data.polls?.find(p => p.messageId === reaction.message.id && !p.closed);
+    if (!poll) return;
+
+    const option = poll.options.find(o => o.emoji === reaction.emoji.name);
+    if (!option) return;
+
+    const voter = poll.voters.find(v => v.userId === user.id);
+    if (voter) {
+      return; 
+    }
+
+    poll.voters.push({ userId: user.id, choices: [option.emoji] });
+    option.votes++;
+    await reaction.users.remove(user.id);
+
+    const totalVoters = poll.voters.length;
+    let optionsText = poll.options.map(o => `${o.emoji} ${o.text}`).join("\n");
+    const endTime = poll.endTime;
+
+    const pollContent = `## ${poll.question}\n${poll.description}\n\n${optionsText}\n\n` +
+      `⏳ Endet am: <t:${Math.floor(endTime / 1000)}:R>\n` +
+      `👤 Erstellt von: <@${poll.creatorId}>\n` +
+      `📊 Teilnehmer: ${totalVoters}\n` +
+      `🆔 ID: ${poll.id}`;
+
+    await reaction.message.edit(pollContent);
+    await setData(data);
+  });
+
+  setInterval(async () => {
+    const data = await getData();
+    const now = Date.now();
+    const expired = data.polls?.filter(p => !p.closed && p.endTime <= now);
+    if (expired && expired.length > 0) {
+      for (const poll of expired) {
+        await closePoll(client, poll, data);
+      }
+    }
+  }, 30000);
+}
+
+async function closePoll(client, poll, data) {
+  poll.closed = true;
+  const channel = await client.channels.fetch(poll.channelId).catch(() => null);
+  if (!channel) {
+    await setData(data);
+    return;
+  }
+
+  const pollMsg = await channel.messages.fetch(poll.messageId).catch(() => null);
+  if (!pollMsg) {
+    await setData(data);
+    return;
+  }
+
+  const totalVoters = poll.voters.length;
+  let optionsText = poll.options.map(o => `${o.emoji} ${o.text}`).join("\n");
+
+  const pollContent = `## ${poll.question}\n${poll.description}\n\n${optionsText}\n\n` +
+    `✅ Geendet am: <t:${Math.floor(poll.endTime / 1000)}:f>\n` +
+    `👤 Erstellt von: <@${poll.creatorId}>\n` +
+    `📊 Teilnehmer: ${totalVoters}\n` +
+    `🆔 ID: ${poll.id}`;
+
+  await pollMsg.edit(pollContent);
+  await pollMsg.reactions.removeAll().catch(() => {});
+
+  let resultsText = `📊 **Ergebnisse für: ${poll.question}** (ID: ${poll.id})\n\n`;
+  poll.options.forEach(o => {
+    const percentage = totalVoters > 0 ? Math.round((o.votes / totalVoters) * 100) : 0;
+    resultsText += `${o.emoji} **${o.text}**: ${o.votes} Stimmen (${percentage}%)\n`;
+  });
+  resultsText += `\nGesamtteilnehmer: ${totalVoters}`;
+
+  await channel.send(resultsText);
+  await setData(data);
+}
