@@ -54,24 +54,24 @@ export function initPoll(client) {
       };
 
       data.polls.push(pollData);
-      await setData(data);
+      await setData("polls_data", data.polls);
     }
 
     if (cmd === "closepoll") {
       const pollId = parseInt(args[0]);
       if (isNaN(pollId)) return msg.reply("❌ Bitte gib eine gültige Poll-ID an.");
 
-      const data = await getData();
-      const poll = data.polls?.find(p => p.id === pollId);
+      const polls = await getData("polls_data") || [];
+      const poll = polls.find(p => p.id === pollId);
       if (!poll || poll.closed) return msg.reply("❌ Poll nicht gefunden oder bereits geschlossen.");
 
-      await closePoll(client, poll, data);
+      await closePoll(client, poll, polls);
       msg.reply(`✅ Poll #${pollId} wurde geschlossen.`);
     }
 
     if (cmd === "listpolls") {
-      const data = await getData();
-      const activePolls = data.polls?.filter(p => !p.closed) || [];
+      const polls = await getData("polls_data") || [];
+      const activePolls = polls.filter(p => !p.closed) || [];
       if (activePolls.length === 0) return msg.reply("Keine aktiven Polls.");
 
       const list = activePolls.map(p => `ID: ${p.id} | ${p.question}`).join("\n");
@@ -83,15 +83,23 @@ export function initPoll(client) {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch();
 
-    const data = await getData() || {};
-    const poll = data.polls?.find(p => p.messageId === reaction.message.id && !p.closed);
+    const polls = await getData("polls_data") || [];
+    const poll = polls.find(p => p.messageId === reaction.message.id && !p.closed);
     if (!poll) return;
 
     const option = poll.options.find(o => o.emoji === reaction.emoji.name);
-    if (!option) return;
+    if (!option) {
+      try {
+        await reaction.users.remove(user.id);
+      } catch (e) {}
+      return;
+    }
 
     const voterIndex = poll.voters.findIndex(v => v.userId === user.id);
     if (voterIndex !== -1) {
+      try {
+        await reaction.users.remove(user.id);
+      } catch (e) {}
       return; 
     }
 
@@ -103,42 +111,42 @@ export function initPoll(client) {
     } catch (e) {}
 
     const totalVoters = poll.voters.length;
-    let optionsText = poll.options.map(o => `${o.emoji} ${o.text}`).join("\n");
     const endTime = poll.endTime;
 
-    const pollContent = `## ${poll.question}\n${poll.description}\n\n${optionsText}\n\n` +
+    const pollContent = `## ${poll.question}\n${poll.description}\n\n` +
+      poll.options.map(o => `${o.emoji} ${o.text}`).join("\n") + `\n\n` +
       `<:info:1467246059561685238> Endet am: <t:${Math.floor(endTime / 1000)}:R>\n` +
       `<:profil:1467246030998343733> Erstellt von: <@${poll.creatorId}>\n` +
       `<:statistiques:1467246038497886311> Teilnehmer: ${totalVoters}\n` +
       `<:identifiant:1467246041668780227> ID: ${poll.id}`;
 
     await reaction.message.edit(pollContent);
-    await setData(data);
+    await setData("polls_data", polls);
   });
 
   setInterval(async () => {
-    const data = await getData() || {};
+    const polls = await getData("polls_data") || [];
     const now = Date.now();
-    const expired = data.polls?.filter(p => !p.closed && p.endTime <= now);
+    const expired = polls.filter(p => !p.closed && p.endTime <= now);
     if (expired && expired.length > 0) {
       for (const poll of expired) {
-        await closePoll(client, poll, data);
+        await closePoll(client, poll, polls);
       }
     }
   }, 30000);
 }
 
-async function closePoll(client, poll, data) {
+async function closePoll(client, poll, polls) {
   poll.closed = true;
   const channel = await client.channels.fetch(poll.channelId).catch(() => null);
   if (!channel) {
-    await setData(data);
+    await setData("polls_data", polls);
     return;
   }
 
   const pollMsg = await channel.messages.fetch(poll.messageId).catch(() => null);
   if (!pollMsg) {
-    await setData(data);
+    await setData("polls_data", polls);
     return;
   }
 
@@ -166,5 +174,5 @@ async function closePoll(client, poll, data) {
   }
 
   await channel.send(resultsText);
-  await setData(data);
+  await setData("polls_data", polls);
 }
