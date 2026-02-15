@@ -6,22 +6,20 @@ export function initPoll(client) {
     if (msg.author.bot || !msg.content.startsWith("!")) return;
     if (!msg.member.roles.cache.has(TEAM_ROLE_ID))
       return msg.channel.send("❌ Du hast keine Berechtigung, eine Umfrage zu starten.");
-    const args = msg.content.slice(1).match(/(?:[^\s,]+|"[^"]*")+/g)?.map(a => a.replace(/"/g, "").trim()) || [];
+    const args = msg.content.slice(1).match(/(?:[^\s,"]+|"[^"]*")+/g)?.map(a => a.replace(/"/g, "").trim()) || [];
     const cmd = args.shift()?.toLowerCase();
 
     if (cmd === "poll") {
-      const rawArgs = msg.content.slice(6).split(",").map(a => a.trim());
-      if (rawArgs.length < 5) return msg.reply("❌ Nutzung: `!poll Frage, Zeit (Minuten), MaxStimmen, Beschreibung, Antwort 1, Antwort 2, ...` (min. 2 Antworten)");
+      if (args.length < 4) return msg.reply("❌ Nutzung: `!poll \"Frage\" \"Zeit (Minuten)\" \"Beschreibung\" \"Antwort 1\" \"Antwort 2\" ...` (min. 2 Antworten)");
 
-      const [question, timeStr, maxChoicesStr, description, ...options] = rawArgs;
+      const [question, timeStr, description, ...options] = args;
       const time = parseInt(timeStr);
-      const maxChoices = parseInt(maxChoicesStr);
 
-      if (isNaN(time) || isNaN(maxChoices) || options.length < 2 || options.length > 10) {
+      if (isNaN(time) || options.length < 2 || options.length > 10) {
         return msg.reply("❌ Ungültige Parameter. Min. 2 Antworten, Max. 10.");
       }
 
-      const data = await getData();
+      const data = await getData() || {};
       data.polls = data.polls || [];
       const pollId = data.polls.length + 1;
 
@@ -49,7 +47,6 @@ export function initPoll(client) {
         question,
         description,
         options: pollOptions,
-        maxChoices,
         endTime,
         creatorId: msg.author.id,
         voters: [],
@@ -117,7 +114,7 @@ export function initPoll(client) {
   });
 
   setInterval(async () => {
-    const data = await getData();
+    const data = await getData() || {};
     const now = Date.now();
     const expired = data.polls?.filter(p => !p.closed && p.endTime <= now);
     if (expired && expired.length > 0) {
