@@ -174,5 +174,6 @@ async function closePoll(client, poll, polls) {
   }
 
   await channel.send(resultsText);
-  await setData("polls_data", polls);
+  const updatedPolls = polls.filter(p => p.id !== poll.id);
+  await setData("polls_data", updatedPolls);
 }
