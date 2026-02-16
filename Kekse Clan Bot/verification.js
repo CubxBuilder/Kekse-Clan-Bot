@@ -1,3 +1,4 @@
+import { AttachmentBuilder } from 'discord.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 const VERIFY_CHANNEL_ID = "1439337595090898955";
 const UNVERIFIED_ROLE_ID = "1439337577508245837";
@@ -39,7 +40,7 @@ export function initVerification(client) {
       );
       const channel = client.channels.cache.get(VERIFY_CHANNEL_ID);
       if (channel) {
-        const imageUrl = "./Kekse Clan Bot/verify.png";
+        const imageUrl = new AttachmentBuilder('../verify.png');
         await channel.send({ 
           content: "**Willkommen!** Klicke auf den Button, um die Verifizierung abzuschließen.",
           files: [imageUrl],
