@@ -42,16 +42,24 @@ export function initGiveaway(client) {
 
   client.on("messageCreate", async msg => {
     if (!msg.content.startsWith("!giveaway") || msg.author.bot) return;
-    if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.channel.send("❌ Keine Rechte.");
+    if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.channel.send({content: "❌ Keine Rechte.",
+        ephemeral: true 
+                                   });
 
     const args = msg.content.split(/\s+/).slice(1);
-    if (args.length < 3) return msg.channel.send("Syntax: `!giveaway #channel 1h Preis [Text] [winners=2]`");
+    if (args.length < 3) return msg.channel.send({content: "Syntax: `!giveaway #channel 1h Preis [Text] [winners=2]`",
+        ephemeral: true 
+                                   });
 
     const channel = msg.mentions.channels.first() || msg.guild.channels.cache.get(args[0]);
-    if (!channel) return msg.channel.send("❌ Kanal nicht gefunden.");
+    if (!channel) return msg.channel.send({content: "❌ Kanal nicht gefunden.",
+        ephemeral: true 
+                                   });
 
     const match = args[1].match(/^(\d+)([smhd])$/);
-    if (!match) return msg.channel.send("❌ Format: 10s, 5m, 2h, 1d");
+    if (!match) return msg.channel.send({content: "❌ Format: 10s, 5m, 2h, 1d",
+        ephemeral: true 
+                                   });
 
     const durationMs = parseDuration(match[1], match[2]);
     const price = args[2];
