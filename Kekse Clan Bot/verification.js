@@ -40,7 +40,7 @@ export function initVerification(client) {
       );
       const channel = client.channels.cache.get(VERIFY_CHANNEL_ID);
       if (channel) {
-        const imageUrl = new AttachmentBuilder('../verify.png');
+        const imageUrl = new AttachmentBuilder('./Kekse Clan Bot/verify.png');
         await channel.send({ 
           content: "**Willkommen!** Klicke auf den Button, um die Verifizierung abzuschließen.",
           files: [imageUrl],
