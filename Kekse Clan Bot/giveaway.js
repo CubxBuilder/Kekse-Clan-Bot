@@ -115,7 +115,7 @@ async function endGiveaway(client, msg, data) {
 
   // 2. Gewinner benachrichtigen
   if (winners.length > 0) {
-    msg.channel.send(`🎉 Glückwunsch ${winnerMentions}! Du hast **${data.price}** gewonnen!\nErstelle ein <#${TICKET_CHANNEL_ID}> um deinen Gewinn abzuholen.`);
+    msg.channel.send(`🎉 Glückwunsch ${winnerMentions}! Du hast **${data.price}** gewonnen! Erstelle ein <#${TICKET_CHANNEL_ID}> um deinen Gewinn abzuholen.`);
   } else {
     msg.channel.send("❌ Keine Teilnehmer, kein Gewinner.");
   }
