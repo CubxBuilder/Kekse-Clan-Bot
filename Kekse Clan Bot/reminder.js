@@ -9,87 +9,95 @@ export function initReminder(client) {
     const days = parseInt(match[1] || "0");
     const hours = parseInt(match[2] || "0");
     const minutes = parseInt(match[3] || "0");
-    return ((days*24 + hours)*60 + minutes)*60000;
+    return ((days * 24 + hours) * 60 + minutes) * 60000;
   }
 
   function parseAbsoluteTime(str) {
     const [timePart, datePart] = str.split(";");
     if (!timePart || !datePart) return null;
-    const [mm, hh] = timePart.split(":").map(Number);
+    const [hh, mm] = timePart.split(":").map(Number);
     const [dd, MM, YYYY] = datePart.split(".").map(Number);
-    const date = new Date(YYYY, MM-1, dd, hh, mm, 0);
-    return date;
+    const date = new Date(YYYY, MM - 1, dd, hh, mm, 0);
+    return date.getTime();
   }
 
-  async function scheduleReminder(reminder, client) {
+  async function checkReminders() {
+    const data = getData("reminders") || { reminders: [] };
+    if (data.reminders.length === 0) return;
+
     const now = Date.now();
-    let delay = 0;
-    if (reminder.type === "duration") {
-      delay = parseDuration(reminder.time);
-    } else if (reminder.type === "absolute") {
-      const date = parseAbsoluteTime(reminder.time);
-      if (!date) return;
-      delay = date.getTime() - now;
-    }
-    if (delay <= 0) return;
+    const remaining = [];
+    let changed = false;
 
-    setTimeout(async () => {
-      try {
-        if (reminder.dm) {
-          const user = await client.users.fetch(reminder.userId);
-          user.send(reminder.text).catch(() => {});
-        } else {
-          const channel = await client.channels.fetch(reminder.channelId);
-          channel.send(reminder.text).catch(() => {});
+    for (const r of data.reminders) {
+      if (now >= r.triggerAt) {
+        changed = true;
+        try {
+          if (r.dm) {
+            const user = await client.users.fetch(r.userId).catch(() => null);
+            if (user) await user.send(`🔔 **Erinnerung:** ${r.text}`);
+          } else {
+            const channel = await client.channels.fetch(r.channelId).catch(() => null);
+            if (channel) await channel.send(`🔔 <@${r.userId}> **Erinnerung:** ${r.text}`);
+          }
+        } catch (err) {
+          console.error("[REMINDER] Fehler beim Senden:", err);
         }
-      } catch {}
-      let data = getData("reminders") || { reminders: [] };
-      data.reminders = data.reminders.filter(r => r.id !== reminder.id);
+      } else {
+        remaining.push(r);
+      }
+    }
+
+    if (changed) {
+      data.reminders = remaining;
       await setData("reminders", data);
-    }, delay);
+    }
   }
 
-  const data = getData("reminders") || { reminders: [] };
-  for (const r of data.reminders) scheduleReminder(r, client);
+  setInterval(checkReminders, 60000);
 
   client.on("messageCreate", async msg => {
-    if (!msg.content.startsWith("!")) return;
+    if (msg.author.bot || !msg.content.startsWith("!")) return;
     if (!msg.member.roles.cache.has("1457906448234319922")) return;
 
-    const args = msg.content.slice(1).split(" ");
+    const args = msg.content.slice(1).split(/\s+/);
     const cmd = args.shift().toLowerCase();
 
     if (cmd === "remind") {
-      if (args.length < 2) return msg.channel.send("❌ Nutzung: !remind <time|duration> <text> [dm]");
+      if (args.length < 2) return msg.channel.send("❌ Nutzung: `!remind <Zeit/Dauer> <Text> [dm]`\nBeispiele: `!remind 2h30m Tee kochen` oder `!remind 18:00;24.12.2024 Geschenke dm` ");
 
       const timeArg = args.shift();
-      const dmFlag = args[args.length-1].toLowerCase() === "dm";
+      const dmFlag = args[args.length - 1]?.toLowerCase() === "dm";
       if (dmFlag) args.pop();
-
       const text = args.join(" ");
-      let type = "duration";
-      if (timeArg.includes(";")) type = "absolute";
 
-      const id = Date.now() + Math.floor(Math.random()*1000);
+      let triggerAt = 0;
+      if (timeArg.includes(";")) {
+        triggerAt = parseAbsoluteTime(timeArg);
+      } else {
+        const duration = parseDuration(timeArg);
+        if (duration > 0) triggerAt = Date.now() + duration;
+      }
+
+      if (!triggerAt || isNaN(triggerAt) || triggerAt <= Date.now()) {
+        return msg.channel.send("❌ Ungültiges Zeitformat oder Zeitpunkt in der Vergangenheit.");
+      }
 
       const reminder = {
-        id,
+        id: Date.now() + Math.floor(Math.random() * 1000),
         userId: msg.author.id,
         channelId: msg.channel.id,
-        type,
-        time: timeArg,
+        triggerAt,
         text,
         dm: dmFlag
       };
 
-      let data = getData("reminders") || { reminders: [] };
+      const data = getData("reminders") || { reminders: [] };
       data.reminders.push(reminder);
       await setData("reminders", data);
 
-      scheduleReminder(reminder, client);
-      console.log(`[REMINDER] Gesetzt von ${msg.author.username} (${msg.author.id}): ${text} in ${timeArg} (DM: ${dmFlag})`);
-
-      msg.channel.send(`✅ Erinnerung gesetzt ${dmFlag ? "(per DM)" : ""}`);
+      console.log(`[REMINDER] ${msg.author.username} erinnert sich um <t:${Math.floor(triggerAt / 1000)}:f>`);
+      msg.channel.send(`✅ Erinnerung gesetzt für <t:${Math.floor(triggerAt / 1000)}:R>!`);
     }
   });
 }
