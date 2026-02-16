@@ -39,8 +39,10 @@ export function initVerification(client) {
       );
       const channel = client.channels.cache.get(VERIFY_CHANNEL_ID);
       if (channel) {
+        const imageUrl = "./verify.png";
         await channel.send({ 
-          content: "**Willkommen!** Klicke auf den Button, um die Verifizierung abzuschließen.", 
+          content: "**Willkommen!** Klicke auf den Button, um die Verifizierung abzuschließen.",
+          files: [imageUrl],
           components: [row] 
         });
         await msg.delete().catch(() => {});
