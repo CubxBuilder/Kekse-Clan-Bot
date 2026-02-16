@@ -64,7 +64,9 @@ export function initReminder(client) {
     const cmd = args.shift().toLowerCase();
 
     if (cmd === "remind") {
-      if (args.length < 2) return msg.channel.send("❌ Nutzung: `!remind <Zeit/Dauer> <Text> [dm]`\nBeispiele: `!remind 2h30m Tee kochen` oder `!remind 18:00;24.12.2024 Geschenke dm` ");
+      if (args.length < 2) return msg.channel.send({content: "❌ Nutzung: `!remind <Zeit/Dauer> <Text> [dm]`\nBeispiele: `!remind 2h30m Tee kochen` oder `!remind 18:00;24.12.2024 Geschenke dm` ",
+        ephemeral: true 
+                                   });
 
       const timeArg = args.shift();
       const dmFlag = args[args.length - 1]?.toLowerCase() === "dm";
@@ -80,7 +82,9 @@ export function initReminder(client) {
       }
 
       if (!triggerAt || isNaN(triggerAt) || triggerAt <= Date.now()) {
-        return msg.channel.send("❌ Ungültiges Zeitformat oder Zeitpunkt in der Vergangenheit.");
+        return msg.channel.send({content: "❌ Ungültiges Zeitformat oder Zeitpunkt in der Vergangenheit.",
+        ephemeral: true 
+                                   });
       }
 
       const reminder = {
@@ -97,7 +101,9 @@ export function initReminder(client) {
       await setData("reminders", data);
 
       console.log(`[REMINDER] ${msg.author.username} erinnert sich um <t:${Math.floor(triggerAt / 1000)}:f>`);
-      msg.channel.send(`✅ Erinnerung gesetzt für <t:${Math.floor(triggerAt / 1000)}:R>!`);
+      msg.channel.send({content: `✅ Erinnerung gesetzt für <t:${Math.floor(triggerAt / 1000)}:R>!`,
+        ephemeral: true 
+                                   });
     }
   });
 }
