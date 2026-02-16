@@ -1,20 +1,20 @@
 export function initPing(client) {
   const TEAM_ROLE_ID = "1457906448234319922";
-
   client.on("messageCreate", async msg => {
-    if (!msg.content.startsWith("!ping")) return;
-
-    const member = msg.member;
-    if (!member.roles.cache.has(TEAM_ROLE_ID)) {
-      return msg.channel.send("❌ Du hast keine Berechtigung, diesen Befehl zu benutzen.");
+    if (!msg.content.startsWith("!ping") || msg.author.bot) return;
+    if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) {
+      const warn = await msg.channel.send("❌ Keine Berechtigung.");
+      return setTimeout(() => warn.delete().catch(() => {}), 5000);
     }
-
     const start = Date.now();
-    const sentMsg = await msg.channel.send("🏓 Berechne Ping...");
+    const sentMsg = await msg.channel.send("🏓 Pinging...").catch(() => null);
+    if (!sentMsg) return;
     const end = Date.now();
-
-    const ping = end - start;
-    console.log(`[PING] Von ${msg.author.username}: ${ping}ms`);
-    await sentMsg.edit(`🏓 Aktueller Ping: ${ping}ms`);
+    const roundtrip = end - start;
+    const wsPing = client.ws.ping; 
+    await sentMsg.edit({
+      content: `🏓 **Pong!**\n- API-Latenz: \`${roundtrip}ms\`\n- WebSocket: \`${wsPing}ms\``
+    }).catch(() => {});
+    console.log(`[PING] ${msg.author.username} | RT: ${roundtrip}ms | WS: ${wsPing}ms`);
   });
 }
