@@ -58,7 +58,6 @@ export function initReminder(client) {
 
   client.on("messageCreate", async msg => {
     if (msg.author.bot || !msg.content.startsWith("!")) return;
-    if (!msg.member.roles.cache.has("1457906448234319922")) return;
 
     const args = msg.content.slice(1).split(/\s+/);
     const cmd = args.shift().toLowerCase();
