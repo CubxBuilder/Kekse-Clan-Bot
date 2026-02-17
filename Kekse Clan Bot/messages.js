@@ -16,6 +16,22 @@ export function registerMessageCommands(client) {
       const text = msg.content.replace(/^!send\s+<#[0-9]+>\s?/, "").trim();
       if (channel && text) await channel.send(text);
     }
+    if (cmd === "changelog") {
+      await deleteCmd();
+      const changelogChannel = msg.guild.channels.cache.get("1464993818968588379");
+      if (!changelogChannel || args.length === 0) return;
+      const date = new Date().toLocaleDateString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+      const updateList = args.map(item => `- ${item}`).join("\n");
+      const messageFormat = 
+`<@&1464994942345547857>
+**:wrench: Änderungen (${date})**
+${updateList}`;
+      await changelogChannel.send(messageFormat);
+    }
 
     if (cmd === "embed") {
       await deleteCmd();
