@@ -148,7 +148,12 @@ async function endGiveaway(client, msg, data) {
     const participantDetails = await Promise.all(
       participants.map(async (id) => {
         const user = await client.users.fetch(id).catch(() => null);
-        return { id, username: user ? user.username : "Unknown" };
+        const member = await guild.members.fetch(id).catch(() => null);
+        return { 
+          id, 
+          username: user ? user.username : "Unknown",
+          booster_bonus: member ? member.roles.cache.has(BOOSTER_ROLE_ID) : false
+        };
       })
     );
 
@@ -183,4 +188,3 @@ function parseDuration(amount, unit) {
   if (u.startsWith('d') || u.startsWith('t')) return value * 86400000;
   return 0;
 }
-
