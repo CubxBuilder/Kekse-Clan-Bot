@@ -17,6 +17,7 @@ import { initHelp } from "./help.js"
 import { initTicketCategory } from "./ticket_category.js"
 import { initPoll } from "./poll.js"
 import { initVerification } from "./verification.js"
+import { initForumWatch } from "./nameevent.js"
 import fs from "fs"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -91,6 +92,7 @@ client.once("ready", async () => {
   initTicketCategory(client)
   initPoll(client)
   initVerification(client)
+  initForumWatch(client)
   
   client.user.setPresence({
     activities: [{ name: "!help", type: 0 }],
