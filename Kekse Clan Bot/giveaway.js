@@ -45,16 +45,15 @@ export function initGiveaway(client) {
     if (!msg.content.startsWith("!giveaway") || msg.author.bot) return;
     if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.reply("❌ Keine Rechte.");
 
-    // Regex für Argumente (erlaubt Texte in Anführungszeichen)
     const args = msg.content.slice(1).match(/(?:[^\s"]+|"[^"]*")+/g)?.map(a => a.replace(/"/g, "")) || [];
-    args.shift(); // entferne 'giveaway'
+    args.shift();
 
     if (args.length < 3) return msg.reply("Syntax: `!giveaway #channel 1h \"Preis\" \"Text\" [winners=2]`");
 
     const channel = msg.mentions.channels.first() || msg.guild.channels.cache.get(args[0]);
     if (!channel) return msg.reply("❌ Kanal nicht gefunden.");
 
-    const match = args[1].match(/^(\d+)([smhd])$/);
+    const match = args[1].match(/^(\d+)(s|sec|m|min|h|std|d|tag|tage)$/i);
     if (!match) return msg.reply("❌ Zeitformat ungültig (z.B. 10m, 1h).");
 
     const durationMs = parseDuration(match[1], match[2]);
@@ -111,17 +110,15 @@ async function endGiveaway(client, msg, data) {
   const participants = data.participants || [];
   let rafflePool = [];
 
-  // 1. Lostopf füllen (Booster erhalten doppelte Chance)
   for (const userId of participants) {
-    rafflePool.push(userId); // Basis-Chance
+    rafflePool.push(userId);
     
     const member = await guild.members.fetch(userId).catch(() => null);
     if (member && member.roles.cache.has(BOOSTER_ROLE_ID)) {
-      rafflePool.push(userId); // Zweite Chance für Booster
+      rafflePool.push(userId); 
     }
   }
 
-  // 2. Gewinner ziehen (Eindeutigkeit prüfen)
   const winners = [];
   const shuffledPool = rafflePool.sort(() => Math.random() - 0.5);
 
@@ -134,21 +131,18 @@ async function endGiveaway(client, msg, data) {
 
   const winnerMentions = winners.length ? winners.map(id => `<@${id}>`).join(", ") : "Niemand";
 
-  // 3. Embed aktualisieren
   const endEmbed = EmbedBuilder.from(msg.embeds[0])
     .setTitle(`🎊 Giveaway beendet: ${data.price}`)
     .setDescription(`${data.messageText}\n\nEntries: **${participants.length}**\nGewinner: ${winnerMentions}`);
 
   await msg.edit({ embeds: [endEmbed] }).catch(() => {});
 
-  // 4. Benachrichtigung
   if (winners.length > 0) {
     msg.channel.send(`🎉 Glückwunsch ${winnerMentions}! Du hast **${data.price}** gewonnen!\nErstelle ein <#${TICKET_CHANNEL_ID}> um deinen Gewinn abzuholen.`);
   } else {
     msg.channel.send("❌ Keine Teilnehmer, kein Gewinner.");
   }
 
-  // 5. JSON-Log
   const logChannel = await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
   if (logChannel) {
     const participantDetails = await Promise.all(
@@ -180,6 +174,13 @@ async function endGiveaway(client, msg, data) {
 }
 
 function parseDuration(amount, unit) {
-  const map = { s: 1000, m: 60000, h: 3600000, d: 86400000 };
-  return parseInt(amount) * map[unit];
+  const value = parseInt(amount);
+  const u = unit.toLowerCase();
+
+  if (u.startsWith('s')) return value * 1000;
+  if (u.startsWith('m')) return value * 60000;
+  if (u.startsWith('h') || u === 'std') return value * 3600000;
+  if (u.startsWith('d') || u.startsWith('t')) return value * 86400000;
+  return 0;
 }
+
