@@ -15,6 +15,18 @@ export function registerMessageCommands(client) {
       const channel = msg.mentions.channels.first();
       const text = msg.content.replace(/^!send\s+<#[0-9]+>\s?/, "").trim();
       if (channel && text) await channel.send(text);
+      const LogEmbed = new EmbedBuilder()
+        .setAuthor({ 
+            name: msg.author.username, 
+            iconURL: msg.author.displayAvatarURL({ size: 512 }) 
+        })
+        .setDescription(`Message gesendet: ${text}`)
+        .setFooter({ 
+            text: 'Kekse Clan' 
+        })
+        .setTimestamp();
+        .setColor('#ffffff')
+      msg.channel.send({ embeds: [LogEmbed] });
     }
     if (cmd === "changelog") {
       await deleteCmd();
@@ -31,6 +43,18 @@ export function registerMessageCommands(client) {
 **:wrench: Änderungen (${date})**
 ${updateList}`;
       await changelogChannel.send(messageFormat);
+      const LogEmbed = new EmbedBuilder()
+        .setAuthor({ 
+            name: msg.author.username, 
+            iconURL: msg.author.displayAvatarURL({ size: 512 }) 
+        })
+        .setDescription(`Changelog gesendet:\n${changelog}`)
+        .setFooter({ 
+            text: 'Kekse Clan' 
+        })
+        .setTimestamp();
+        .setColor('#ffffff')
+      msg.channel.send({ embeds: [LogEmbed] });
     }
 
     if (cmd === "embed") {
@@ -41,6 +65,18 @@ ${updateList}`;
         const embed = new EmbedBuilder().setTitle(title).setDescription(text).setColor(color);
         await channel.send({ embeds: [embed] });
       }
+      const LogEmbed = new EmbedBuilder()
+        .setAuthor({ 
+            name: msg.author.username, 
+            iconURL: msg.author.displayAvatarURL({ size: 512 }) 
+        })
+        .setDescription(`Embed gesendet:\n${title}\n${text}\n${color}`)
+        .setFooter({ 
+            text: 'Kekse Clan' 
+        })
+        .setTimestamp();
+        .setColor('#ffffff')
+      msg.channel.send({ embeds: [LogEmbed] });
     }
 
     if (cmd === "dm") {
@@ -49,6 +85,18 @@ ${updateList}`;
       const text = args.slice(1).join(" ");
       const user = await client.users.fetch(userId).catch(() => null);
       if (user && text) await user.send(text).catch(() => {});
+      const LogEmbed = new EmbedBuilder()
+        .setAuthor({ 
+            name: msg.author.username, 
+            iconURL: msg.author.displayAvatarURL({ size: 512 }) 
+        })
+        .setDescription(`DM gesendet: ${text}`)
+        .setFooter({ 
+            text: 'Kekse Clan' 
+        })
+        .setTimestamp();
+        .setColor('#ffffff')
+      msg.channel.send({ embeds: [LogEmbed] });
     }
 
     if (cmd === "news") {
@@ -87,6 +135,18 @@ ${updateList}`;
       });
 
       await channel.send(text);
+      const LogEmbed = new EmbedBuilder()
+        .setAuthor({ 
+            name: msg.author.username, 
+            iconURL: msg.author.displayAvatarURL({ size: 512 }) 
+        })
+        .setDescription(`News gesendet: ${text}`)
+        .setFooter({ 
+            text: 'Kekse Clan' 
+        })
+        .setTimestamp();
+        .setColor('#ffffff')
+      msg.channel.send({ embeds: [LogEmbed] });
     }
 
     if (cmd === "reply") {
@@ -103,6 +163,18 @@ ${updateList}`;
       } catch (err) {
         await msg.channel.send("❌ Nachricht nicht gefunden.").then(m => setTimeout(() => m.delete(), 3000));
       }
+      const LogEmbed = new EmbedBuilder()
+        .setAuthor({ 
+            name: msg.author.username, 
+            iconURL: msg.author.displayAvatarURL({ size: 512 }) 
+        })
+        .setDescription(`Reply gesendet: ${text}`)
+        .setFooter({ 
+            text: 'Kekse Clan' 
+        })
+        .setTimestamp();
+        .setColor('#ffffff')
+      msg.channel.send({ embeds: [LogEmbed] });
     }
   });
 }
