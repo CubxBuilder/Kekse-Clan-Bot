@@ -6,9 +6,8 @@ export async function initInvites(client) {
   client.on("messageCreate", async (msg) => {
     if (msg.content === "!asdf" && msg.member?.roles.cache.has(TEAM_ROLE_ID)) {
       const manualStats = {
-        "1457906448234319922": { regular: 92, left: 23, fake: 4, bonus: 0 },
-        "123456789012345678": { regular: 31, left: 13, fake: 2, bonus: 0 },
-        "1271382539101016146": { regular: 3, left: 0, fake: 0, bonus: 0 },
+        "1266400369383047231": { regular: 92, left: 23, fake: 4, bonus: 0 },
+        "1151971830983311441": { regular: 31, left: 13, fake: 2, bonus: 0 },
       };
       await setData("invite_stats", manualStats);
       return msg.reply("✅ Daten gesetzt!");
