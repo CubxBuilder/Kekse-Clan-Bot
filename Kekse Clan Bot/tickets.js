@@ -1,5 +1,5 @@
 import { MessageFlags, PermissionFlagsBits, ChannelType } from "discord.js";
-import { getData, setData } from "./remindersStorage.js";
+import { getData, setData } from "./ticketsStorage.js";
 
 const ARCHIVE_CATEGORY_ID = "1465452886657077593";
 const TEAM_ROLE_ID = "1457906448234319922";
