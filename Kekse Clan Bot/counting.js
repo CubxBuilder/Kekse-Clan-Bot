@@ -1,5 +1,5 @@
 import { EmbedBuilder, Events } from "discord.js";
-import { getData, setData } from "./storage.js";
+import { getData, setData } from "./countingStorage.js";
 
 const COUNTING_CHANNEL = "1423434079390535730";
 
