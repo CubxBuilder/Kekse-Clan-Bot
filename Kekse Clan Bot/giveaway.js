@@ -69,7 +69,7 @@ export function initGiveaway(client) {
     const endTime = startTime + durationMs;
     const embed = new EmbedBuilder()
       .setTitle(`🎁 Giveaway: ${price}`)
-      .setDescription(`${messageText}\n\nEndet am: <t:${Math.floor(endTime / 1000)}:F>\nEntries: **0**\nWinners: **${winnerCount}**`)
+      .setDescription(`${messageText}\n\nEndet am: <t:${Math.floor(endTime / 1000)}:R>(<t:${Math.floor(endTime / 1000)}:f>)\nTeilnehmer: **0**\nGewinner: **${winnerCount}**`)
       .setColor(EMBED_COLOR);
     const giveawayMsg = await channel.send({
       content: "<@&1424028650080178348>",
@@ -135,7 +135,7 @@ async function endGiveaway(client, msg, data) {
 
   const endEmbed = EmbedBuilder.from(msg.embeds[0])
     .setTitle(`🎊 Giveaway beendet: ${data.price}`)
-    .setDescription(`${data.messageText}\n\nEntries: **${participants.length}**\nGewinner: ${winnerMentions}`);
+    .setDescription(`${data.messageText}\n\nBeendet: <t:${Math.floor(endTime / 1000)}:R>(<t:${Math.floor(endTime / 1000)}:f>)\nTeilnehmer: **${participants.length}**\nGewinner: ${winnerMentions}`);
 
   await msg.edit({ embeds: [endEmbed] }).catch(() => {});
 
