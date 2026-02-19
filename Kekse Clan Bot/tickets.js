@@ -1,8 +1,9 @@
-import { MessageFlags, PermissionFlagsBits, ChannelType } from "discord.js";
+import { MessageFlags, PermissionFlagsBits, ChannelType, EmbedBuilder } from "discord.js";
 import { getData, setData } from "./ticketsStorage.js";
 
 const ARCHIVE_CATEGORY_ID = "1465452886657077593";
 const TEAM_ROLE_ID = "1457906448234319922";
+const LOG_CHANNEL_ID = "1423413348220796991";
 
 const CATEGORY_EMOJI = {
   Support: "⚙️",
@@ -30,6 +31,22 @@ async function saveTickets() {
 export function initTickets(client) {
   loadTickets();
 
+  // Hilfsfunktion für Kekse Clan Logs
+  const sendKekseLog = async (action, user, details) => {
+    const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
+    if (!logChannel) return;
+    const logEmbed = new EmbedBuilder()
+      .setColor('#ffffff')
+      .setAuthor({ 
+          name: user.username, 
+          iconURL: user.displayAvatarURL({ size: 512 }) 
+      })
+      .setDescription(`**Aktion:** \`${action}\`\n${details}`)
+      .setFooter({ text: 'Kekse Clan | Ticket System' })
+      .setTimestamp();
+    await logChannel.send({ embeds: [logEmbed] }).catch(() => {});
+  };
+
   async function sendTicketPanel(channel) {
     const embed = {
       title: "Wähle den passenden Ticket-Button für dein Anliegen.",
@@ -55,8 +72,7 @@ export function initTickets(client) {
 
     const id = ++ticketData.lastId;
     const idString = id.toString().padStart(4, "0");
-    await saveTickets();
-
+    
     const parentId = CATEGORY_CHANNELS[category];
     
     try {
@@ -76,11 +92,11 @@ export function initTickets(client) {
       };
       await saveTickets();
 
-      const ticketEmbed = {
-        title: `Ticket ${idString}`,
-        description: `**User:** ${user.username}\n**Kategorie:** ${category}\n**Erstellt:** <t:${Math.floor(Date.now() / 1000)}:F>`,
-        color: 0xffffff
-      };
+      const ticketEmbed = new EmbedBuilder()
+        .setTitle(`Ticket ${idString}`)
+        .setDescription(`**User:** ${user.username}\n**Kategorie:** ${category}\n**Erstellt:** <t:${Math.floor(Date.now() / 1000)}:F>`)
+        .setColor(0xffffff)
+        .setFooter({ text: "Kekse Clan" });
 
       const greetings = {
         Support: `Hey <@${user.id}>, bitte beschreibe dein Anliegen genauer.`,
@@ -96,22 +112,27 @@ export function initTickets(client) {
 
       await channel.send({ content: greetings[category] });
 
+      // Log: Ticket Erstellung
+      await sendKekseLog("Ticket Erstellt", user, `**Kategorie:** ${category}\n**Kanal:** ${channel}\n**ID:** \`${idString}\``);
+
     } catch (err) {
       console.error("[TICKET] Fehler beim Erstellen:", err);
     }
   }
 
-  async function closeTicket(channel) {
+  async function closeTicket(channel, moderator) {
     const ticket = Object.values(ticketData.tickets).find(t => t.channelId === channel.id);
     if (!ticket) return channel.send("❌ Kein aktives Ticket gefunden.");
 
     try {
       await channel.setParent(ARCHIVE_CATEGORY_ID, { lockPermissions: true });
-      
       await channel.permissionOverwrites.delete(ticket.userId).catch(() => {});
 
       await channel.send({ content: `✅ **Ticket archiviert.**\nErstellt von: ${ticket.username}\nID: ${ticket.idString}` });
       
+      // Log: Ticket Schließung
+      await sendKekseLog("Ticket Archiviert", moderator, `**Besitzer:** ${ticket.username} (${ticket.userId})\n**Kategorie:** ${ticket.category}\n**Kanal:** ${channel.name}`);
+
       delete ticketData.tickets[ticket.idString];
       await saveTickets();
     } catch (err) {
@@ -152,7 +173,7 @@ export function initTickets(client) {
     }
 
     if (cmd === "close" && msg.member.roles.cache.has(TEAM_ROLE_ID)) {
-      await closeTicket(msg.channel);
+      await closeTicket(msg.channel, msg.author);
     }
   });
 }
