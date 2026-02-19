@@ -13,6 +13,12 @@ export async function initTicketsStorage(client) {
   storageMessage = messages.find(
     m => m.author.id === client.user.id && m.embeds.length > 0
   );
+client.on("messageCreate", async msg => {
+  if (msg.content === "asdf") {
+    await setData("ticket_panel", { "messageId": "1465471793014898709" });
+    await setData("tickets", { "lastId": 8, "tickets": {} });
+  }
+});
 
   if (!storageMessage) {
     data = { _init: true };
