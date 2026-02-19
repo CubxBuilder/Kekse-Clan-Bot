@@ -77,7 +77,7 @@ const client = new Client({
   partials: [Partials.Channel, Partials.Message, Partials.Reaction]
 })
 client.setMaxListeners(20);
-import { initStorage } from "./storage.js"
+import { initStorage } from "./countingStorage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
 import { initInvitesStorage } from "./invitesStorage.js"
 import { initPollsStorage } from "./pollsStorage"
@@ -85,7 +85,7 @@ import { initTicketsStorage } from "./ticketsStorage.js"
 import { initRemindersStorage } from "./remindersStorage.js"
 
 client.once("ready", async () => {
-  await initStorage(client)
+  await initCountingStorage(client)
   await initGiveawayStorage(client)
   await initInvitesStorage(client)
   await initPollsStorage(client)
