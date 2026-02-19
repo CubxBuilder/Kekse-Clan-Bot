@@ -32,7 +32,7 @@ export function initGiveaway(client) {
         changed = true;
       } else {
         const embed = EmbedBuilder.from(msg.embeds[0])
-          .setDescription(`${data.messageText}\n\nEndet am: <t:${Math.floor(data.endTime / 1000)}:R>\nEntries: **${data.participants.length}**\nWinners: **${data.winnerCount}**`);
+          .setDescription(`${messageText}\n\nEndet am: <t:${Math.floor(endTime / 1000)}:R>(<t:${Math.floor(endTime / 1000)}:f>)\nTeilnehmer: **0**\nGewinner: **${winnerCount}**`);
         await msg.edit({ embeds: [embed] }).catch(() => {});
       }
     }
