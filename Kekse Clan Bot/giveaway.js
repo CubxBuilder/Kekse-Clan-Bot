@@ -71,8 +71,10 @@ export function initGiveaway(client) {
       .setTitle(`🎁 Giveaway: ${price}`)
       .setDescription(`${messageText}\n\nEndet am: <t:${Math.floor(endTime / 1000)}:F>\nEntries: **0**\nWinners: **${winnerCount}**`)
       .setColor(EMBED_COLOR);
-
-    const giveawayMsg = await channel.send({ embeds: [embed] });
+    const giveawayMsg = await channel.send({
+      content: "<@&1424028650080178348>",
+      embeds: [embed] 
+    });
     await giveawayMsg.react(GIVEAWAY_EMOJI);
 
     const giveaways = getData("activeGiveaways") || {};
