@@ -80,11 +80,13 @@ client.setMaxListeners(20);
 import { initStorage } from "./storage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
 import { initInvitesStorage } from "./invitesStorage.js"
+import { initPollsStorage } from "./pollsStorage"
 
 client.once("ready", async () => {
   await initStorage(client)
   await initGiveawayStorage(client)
   await initInvitesStorage(client)
+  await initPollsStorage(client)
   await initCounting(client)
   initModeration(client)
   registerMessageCommands(client)
