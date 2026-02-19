@@ -82,6 +82,7 @@ import { initGiveawayStorage } from "./giveawayStorage.js"
 import { initInvitesStorage } from "./invitesStorage.js"
 import { initPollsStorage } from "./pollsStorage"
 import { initTicketsStorage } from "./ticketsStorage.js"
+import { initRemindersStorage } from "./remindersStorage.js"
 
 client.once("ready", async () => {
   await initStorage(client)
@@ -89,6 +90,7 @@ client.once("ready", async () => {
   await initInvitesStorage(client)
   await initPollsStorage(client)
   await initTicketsStorage(client)
+  await initRemindersStorage(client)
   await initCounting(client)
   initModeration(client)
   registerMessageCommands(client)
