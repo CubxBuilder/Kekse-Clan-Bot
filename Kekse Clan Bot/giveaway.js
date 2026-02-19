@@ -15,43 +15,52 @@ const TICKET_CHANNEL_ID = "1423413348493430905";
 const EMBED_COLOR = 0xffffff;
 
 export function initGiveaway(client) {
-  // Update-Funktion separat, damit sie vom Intervall UND vom Button aufgerufen werden kann
   const checkGiveaways = async () => {
+    // Daten immer frisch laden
     const giveaways = getData("activeGiveaways") || {};
     const now = Date.now();
     let changed = false;
 
     for (const [msgId, data] of Object.entries(giveaways)) {
       const channel = await client.channels.fetch(data.channelId).catch(() => null);
-      if (!channel) continue;
+      
+      // Falls Kanal weg -> aus Storage löschen
+      if (!channel) {
+        delete giveaways[msgId];
+        changed = true;
+        continue;
+      }
+
       const msg = await channel.messages.fetch(msgId).catch(() => null);
 
+      // Falls Nachricht weg -> aus Storage löschen
       if (!msg) {
         delete giveaways[msgId];
         changed = true;
         continue;
       }
 
-      // WICHTIG: Wenn abgelaufen, SOFORT aus dem Objekt entfernen (Race Condition Fix)
       if (now >= data.endTime) {
+        // SOFORT im Objekt löschen & speichern, bevor endGiveaway (async) startet
         delete giveaways[msgId];
-        changed = true;
-        // Datei-Update synchronisieren, bevor die End-Nachricht gesendet wird
         await setData("activeGiveaways", giveaways); 
+        changed = false; // changed auf false, da wir oben schon manuell gespeichert haben
+
         await endGiveaway(client, msg, data);
         continue;
       } else {
+        // Reguläres Timer Update
         const embed = EmbedBuilder.from(msg.embeds[0])
           .setDescription(`${data.messageText}\n\nEndet am: <t:${Math.floor(data.endTime / 1000)}:R> (<t:${Math.floor(data.endTime / 1000)}:f>)\nTeilnehmer: **${data.participants?.length || 0}**\nGewinner: **${data.winnerCount}**`);
         await msg.edit({ embeds: [embed] }).catch(() => {});
       }
     }
+    // Finale Speicherung falls sich durch fehlende Channels/Msgs etwas geändert hat
     if (changed) await setData("activeGiveaways", giveaways);
   };
 
   setInterval(checkGiveaways, 5000);
 
-  // --- BUTTON LISTENER ---
   client.on("interactionCreate", async (interaction) => {
     if (!interaction.isButton() || interaction.customId !== "join_giveaway") return;
 
@@ -66,24 +75,24 @@ export function initGiveaway(client) {
       return interaction.reply({ content: "✅ Du nimmst bereits an diesem Giveaway teil!", ephemeral: true });
     }
 
-    // Teilnehmer speichern
     data.participants.push(interaction.user.id);
     await setData("activeGiveaways", giveaways);
 
-    // Ephemerale Antwort senden
+    // Sofortiges visuelles Update der Nachricht für den User
+    const updatedEmbed = EmbedBuilder.from(interaction.message.embeds[0])
+      .setDescription(`${data.messageText}\n\nEndet am: <t:${Math.floor(data.endTime / 1000)}:R> (<t:${Math.floor(data.endTime / 1000)}:f>)\nTeilnehmer: **${data.participants.length}**\nGewinner: **${data.winnerCount}**`);
+    
+    await interaction.message.edit({ embeds: [updatedEmbed] }).catch(() => {});
+
     await interaction.reply({ 
       content: "🎉 Du hast das Giveaway erfolgreich betreten! Viel Glück!", 
       ephemeral: true 
     });
-
-    // Sofortiges Update des Embeds triggern
-    await checkGiveaways();
   });
 
   client.on("messageCreate", async msg => {
     if (msg.author.bot) return;
 
-    // --- REROLL COMMAND ---
     if (msg.content.startsWith("!reroll")) {
       if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.reply("❌ Keine Rechte.");
       const args = msg.content.split(" ");
@@ -98,10 +107,9 @@ export function initGiveaway(client) {
       }
 
       const winner = data.participants[Math.floor(Math.random() * data.participants.length)];
-      return msg.channel.send(`🔄 **Reroll:** Glückwunsch <@${winner}>! Du hast nachträglich **${data.prize}** gewonnen!`);
+      return msg.channel.send(`🔄 **Reroll:** Glückwunsch <@${winner}>! Du hast nachträglich **${data.price}** gewonnen!`);
     }
 
-    // --- GIVEAWAY START ---
     if (!msg.content.startsWith("!giveaway")) return;
     if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.reply("❌ Keine Rechte.");
 
@@ -114,7 +122,7 @@ export function initGiveaway(client) {
     if (!channel) return msg.reply("❌ Kanal nicht gefunden.");
 
     const match = args[1].match(/^(\d+)(s|sec|m|min|h|std|d|tag|tage)$/i);
-    if (!match) return msg.reply("❌ Zeitformat ungültig (z.B. 10m, 1h).");
+    if (!match) return msg.reply("❌ Zeitformat ungültig.");
 
     const durationMs = parseDuration(match[1], match[2]);
     const price = args[2];
@@ -167,7 +175,6 @@ async function endGiveaway(client, msg, data) {
   const guild = msg.guild;
   const participants = data.participants || [];
 
-  // In Historie speichern für !reroll
   const history = getData("giveawayHistory") || {};
   history[msg.id] = data;
   await setData("giveawayHistory", history);
@@ -177,7 +184,7 @@ async function endGiveaway(client, msg, data) {
     rafflePool.push(userId);
     const member = await guild.members.fetch(userId).catch(() => null);
     if (member && member.roles.cache.has(BOOSTER_ROLE_ID)) {
-      rafflePool.push(userId); // Booster Bonus (Double Entry)
+      rafflePool.push(userId);
     }
   }
 
