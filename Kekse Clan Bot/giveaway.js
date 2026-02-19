@@ -32,7 +32,7 @@ export function initGiveaway(client) {
     }
     if (changed) await setData("activeGiveaways", giveaways);
   };
-  setInterval(checkGiveaways, 30000);
+  setInterval(checkGiveaways, 5000);
   client.on("messageCreate", async msg => {
     if (!msg.content.startsWith("!giveaway") || msg.author.bot) return;
     if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.reply("❌ Keine Rechte.");
