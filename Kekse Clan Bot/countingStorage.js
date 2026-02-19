@@ -5,7 +5,7 @@ const STORAGE_CHANNEL_ID = "1423413348220796996";
 let storageMessage = null;
 let data = {};
 
-export async function initStorage(client) {
+export async function initCountingStorage(client) {
   const channel = await client.channels.fetch(STORAGE_CHANNEL_ID).catch(() => null);
   if (!channel || !channel.isTextBased()) return;
 
