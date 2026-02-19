@@ -3,7 +3,6 @@ import "dotenv/config"
 import path from "path"
 import express from "express"
 import { fileURLToPath } from "url"
-
 import { initCounting } from "./counting.js"
 import { initModeration } from "./moderation.js"
 import { registerMessageCommands } from "./messages.js"
@@ -79,9 +78,11 @@ const client = new Client({
 })
 client.setMaxListeners(20);
 import { initStorage } from "./storage.js"
+import { initGiveawayStorage } from "./giveawayStorage.js"
 
 client.once("ready", async () => {
   await initStorage(client)
+  await initGiveawayStorage(client)
   await initCounting(client)
   initModeration(client)
   registerMessageCommands(client)
