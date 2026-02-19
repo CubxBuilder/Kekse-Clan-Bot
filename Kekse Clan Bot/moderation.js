@@ -1,5 +1,5 @@
 import { PermissionsBitField, EmbedBuilder } from "discord.js";
-import { getData, setData } from "./storage.js";
+import { getData, setData } from "./moderationStorage.js";
 
 const LOG_CHANNEL_ID = "1423413348220796991";
 const TEAM_ROLE_ID = "1457906448234319922";
