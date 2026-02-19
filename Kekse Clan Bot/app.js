@@ -6,7 +6,7 @@ import { fileURLToPath } from "url"
 import { initCounting } from "./counting.js"
 import { initModeration } from "./moderation.js"
 import { registerMessageCommands } from "./messages.js"
-import { initTickets } from "./dtickets.js"
+import { initTickets } from "./tickets.js"
 import { initGiveaway } from "./giveaway.js"
 import { initPing } from "./ping.js"
 import { initIds } from "./ids.js"
@@ -81,12 +81,14 @@ import { initStorage } from "./storage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
 import { initInvitesStorage } from "./invitesStorage.js"
 import { initPollsStorage } from "./pollsStorage"
+import { initTicketsStorage } from "./ticketsStorage.js"
 
 client.once("ready", async () => {
   await initStorage(client)
   await initGiveawayStorage(client)
   await initInvitesStorage(client)
   await initPollsStorage(client)
+  await initTicketsStorage(client)
   await initCounting(client)
   initModeration(client)
   registerMessageCommands(client)
