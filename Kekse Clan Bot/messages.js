@@ -15,44 +15,34 @@ export function registerMessageCommands(client) {
       const channel = msg.mentions.channels.first();
       const text = msg.content.replace(/^!send\s+<#[0-9]+>\s?/, "").trim();
       if (channel && text) await channel.send(text);
-      const LogEmbed = new EmbedBuilder();
+      const LogEmbed = new EmbedBuilder()
         .setAuthor({ 
             name: msg.author.username, 
             iconURL: msg.author.displayAvatarURL({ size: 512 }) 
-        });
-        .setDescription(`Message gesendet: ${text}`);
-        .setFooter({ 
-            text: 'Kekse Clan' 
-        });
-        .setTimestamp();
+        })
+        .setDescription(`Message gesendet: ${text}`)
+        .setFooter({ text: 'Kekse Clan' })
+        .setTimestamp()
         .setColor('#ffffff');
       msg.channel.send({ embeds: [LogEmbed] });
     }
+
     if (cmd === "changelog") {
       await deleteCmd();
       const changelogChannel = msg.guild.channels.cache.get("1464993818968588379");
       if (!changelogChannel || args.length === 0) return;
-      const date = new Date().toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-      });
+      const date = new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
       const updateList = args.map(item => `- ${item}`).join("\n");
-      const messageFormat = 
-`<@&1464994942345547857>
-**:wrench: Änderungen (${date})**
-${updateList}`;
+      const messageFormat = `<@&1464994942345547857>\n**:wrench: Änderungen (${date})**\n${updateList}`;
       await changelogChannel.send(messageFormat);
-      const LogEmbed = new EmbedBuilder();
+      const LogEmbed = new EmbedBuilder()
         .setAuthor({ 
             name: msg.author.username, 
             iconURL: msg.author.displayAvatarURL({ size: 512 })
-        });
-        .setDescription(`Changelog gesendet:\n${changelog}`);
-        .setFooter({ 
-            text: 'Kekse Clan' 
-        });
-        .setTimestamp();
+        })
+        .setDescription(`Changelog gesendet:\n${updateList}`)
+        .setFooter({ text: 'Kekse Clan' })
+        .setTimestamp()
         .setColor('#ffffff');
       msg.channel.send({ embeds: [LogEmbed] });
     }
@@ -60,21 +50,19 @@ ${updateList}`;
     if (cmd === "embed") {
       await deleteCmd();
       const channel = msg.mentions.channels.first();
-      const [_, title, text, color = "#ffffff"] = args;
+      const = args;
       if (channel && title && text) {
         const embed = new EmbedBuilder().setTitle(title).setDescription(text).setColor(color);
         await channel.send({ embeds: [embed] });
       }
-      const LogEmbed = new EmbedBuilder();
+      const LogEmbed = new EmbedBuilder()
         .setAuthor({ 
             name: msg.author.username, 
             iconURL: msg.author.displayAvatarURL({ size: 512 }) 
-        });
-        .setDescription(`Embed gesendet:\n${title}\n${text}\n${color}`);
-        .setFooter({ 
-            text: 'Kekse Clan' 
-        });
-        .setTimestamp();
+        })
+        .setDescription(`Embed gesendet:\n${title}\n${text}\n${color}`)
+        .setFooter({ text: 'Kekse Clan' })
+        .setTimestamp()
         .setColor('#ffffff');
       msg.channel.send({ embeds: [LogEmbed] });
     }
@@ -85,16 +73,14 @@ ${updateList}`;
       const text = args.slice(1).join(" ");
       const user = await client.users.fetch(userId).catch(() => null);
       if (user && text) await user.send(text).catch(() => {});
-      const LogEmbed = new EmbedBuilder();
+      const LogEmbed = new EmbedBuilder()
         .setAuthor({ 
             name: msg.author.username, 
             iconURL: msg.author.displayAvatarURL({ size: 512 }) 
-        });
-        .setDescription(`DM gesendet: ${text}`);
-        .setFooter({ 
-            text: 'Kekse Clan' 
-        });
-        .setTimestamp();
+        })
+        .setDescription(`DM gesendet: ${text}`)
+        .setFooter({ text: 'Kekse Clan' })
+        .setTimestamp()
         .setColor('#ffffff');
       msg.channel.send({ embeds: [LogEmbed] });
     }
@@ -103,7 +89,6 @@ ${updateList}`;
       await deleteCmd();
       const channel = msg.mentions.channels.first();
       if (!channel) return;
-
       let text = msg.content.replace(/^!news\s+<#[0-9]+>\s?/, "").trim();
       if (!text) return;
 
@@ -135,16 +120,14 @@ ${updateList}`;
       });
 
       await channel.send(text);
-      const LogEmbed = new EmbedBuilder();
+      const LogEmbed = new EmbedBuilder()
         .setAuthor({ 
             name: msg.author.username, 
             iconURL: msg.author.displayAvatarURL({ size: 512 }) 
-        });
+        })
         .setDescription(`News gesendet: ${text}`)
-        .setFooter({ 
-            text: 'Kekse Clan' 
-        });
-        .setTimestamp();
+        .setFooter({ text: 'Kekse Clan' })
+        .setTimestamp()
         .setColor('#ffffff');
       msg.channel.send({ embeds: [LogEmbed] });
     }
@@ -154,27 +137,23 @@ ${updateList}`;
       const channelMention = msg.mentions.channels.first() || msg.channel;
       const msgId = args.find(a => /^\d{17,20}$/.test(a));
       let text = args.filter(a => !a.includes(msgId) && !a.startsWith("<#")).join(" ");
-
       if (!msgId || !text) return;
-
       try {
         const targetMsg = await channelMention.messages.fetch(msgId);
         targetMsg.system ? await channelMention.send(text) : await targetMsg.reply(text);
+        const LogEmbed = new EmbedBuilder()
+          .setAuthor({ 
+              name: msg.author.username, 
+              iconURL: msg.author.displayAvatarURL({ size: 512 }) 
+          })
+          .setDescription(`Reply gesendet: ${text}`)
+          .setFooter({ text: 'Kekse Clan' })
+          .setTimestamp()
+          .setColor('#ffffff');
+        msg.channel.send({ embeds: [LogEmbed] });
       } catch (err) {
         await msg.channel.send("❌ Nachricht nicht gefunden.").then(m => setTimeout(() => m.delete(), 3000));
       }
-      const LogEmbed = new EmbedBuilder();
-        .setAuthor({ 
-            name: msg.author.username, 
-            iconURL: msg.author.displayAvatarURL({ size: 512 }) 
-        });
-        .setDescription(`Reply gesendet: ${text}`);
-        .setFooter({ 
-            text: 'Kekse Clan' 
-        });
-        .setTimestamp();
-        .setColor('#ffffff');
-      msg.channel.send({ embeds: [LogEmbed] });
     }
   });
 }
