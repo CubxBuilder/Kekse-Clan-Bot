@@ -3,16 +3,6 @@ import { getData, setData } from "./storage.js";
 export async function initInvites(client) {
   const inviteCache = new Map();
   const TEAM_ROLE_ID = "1457906448234319922";
-  client.on("messageCreate", async (msg) => {
-    if (msg.content === "!asdf" && msg.member?.roles.cache.has(TEAM_ROLE_ID)) {
-      const manualStats = {
-        "1266400369383047231": { regular: 92, left: 23, fake: 4, bonus: 0 },
-        "1151971830983311441": { regular: 31, left: 13, fake: 2, bonus: 0 },
-      };
-      await setData("invite_stats", manualStats);
-      return msg.reply("✅ Daten gesetzt!");
-    }
-  });
   const cacheInvites = async () => {
     for (const g of client.guilds.cache.values()) {
       const invs = await g.invites.fetch().catch(() => null);
@@ -24,14 +14,14 @@ export async function initInvites(client) {
     if (msg.author.bot || !msg.content.startsWith("!")) return;
     const args = msg.content.slice(1).split(/\s+/);
     const cmd = args.shift().toLowerCase();
-    if (cmd === "inviteleaderboard") {
+    if (cmd === "invite_leaderboard" || cmd === "invites") {
       const stats = getData("invite_stats") || {};
       const leaderboard = Object.entries(stats).map(([id, s]) => ({ id, ...s, total: (s.regular || 0) - (s.left || 0) - (s.fake || 0) + (s.bonus || 0) })).sort((a, b) => b.total - a.total).slice(0, 10);
       if (leaderboard.length === 0) return msg.reply("Keine Daten.");
       let desc = "";
       leaderboard.forEach((e, i) => { desc += `\`${i + 1}. \` <@${e.id}> • **${e.total}** invites. (${e.regular} regular, ${e.left} left, ${e.fake} fake, ${e.bonus} bonus)\n`; });
       const embed = new EmbedBuilder().setTitle("<:statistiques:1467246038497886311> Invite Leaderboard").setDescription(desc).setColor(0xffffff);
-      await msg.channel.send({ embeds: [embed] });
+      await msg.reply({ embeds: [embed] });
     }
     if (cmd === "addbonus" && msg.member.roles.cache.has(TEAM_ROLE_ID)) {
       const target = msg.mentions.users.first() || await client.users.fetch(args[0]).catch(() => null);
