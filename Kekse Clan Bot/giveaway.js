@@ -1,4 +1,10 @@
-import { EmbedBuilder, AttachmentBuilder } from "discord.js";
+import { 
+  EmbedBuilder, 
+  AttachmentBuilder, 
+  ActionRowBuilder, 
+  ButtonBuilder, 
+  ButtonStyle 
+} from "discord.js";
 import { getData, setData } from "./storage.js";
 const GIVEAWAY_EMOJI = "🎉";
 const TEAM_ROLE_ID = "1457906448234319922";
@@ -33,8 +39,39 @@ export function initGiveaway(client) {
     if (changed) await setData("activeGiveaways", giveaways);
   };
   setInterval(checkGiveaways, 5000);
+  client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isButton() || interaction.customId !== "join_giveaway") return;
+    const giveaways = getData("activeGiveaways") || {};
+    const data = giveaways[interaction.message.id];
+    if (!data) {
+      return interaction.reply({ content: "❌ Dieses Giveaway ist nicht mehr aktiv.", ephemeral: true });
+    }
+    if (data.participants.includes(interaction.user.id)) {
+      return interaction.reply({ content: "✅ Du nimmst bereits an diesem Giveaway teil!", ephemeral: true });
+    }
+    data.participants.push(interaction.user.id);
+    await setData("activeGiveaways", giveaways);
+    await interaction.reply({ 
+      content: "🎉 Du hast das Giveaway erfolgreich betreten! Viel Glück!", 
+      ephemeral: true 
+    });
+  });
   client.on("messageCreate", async msg => {
-    if (!msg.content.startsWith("!giveaway") || msg.author.bot) return;
+    if (msg.author.bot) return;
+    if (msg.content.startsWith("!reroll")) {
+      if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.reply("❌ Keine Rechte.");
+      const args = msg.content.split(" ");
+      const messageId = args[1];
+      if (!messageId) return msg.reply("Syntax: `!reroll <MessageID>`");
+      const history = getData("giveawayHistory") || {};
+      const data = history[messageId];
+      if (!data || !data.participants?.length) {
+        return msg.reply("❌ Keine Teilnehmerdaten für diese ID gefunden (oder keine Teilnehmer).");
+      }
+      const winner = data.participants[Math.floor(Math.random() * data.participants.length)];
+      return msg.channel.send(`🔄 **Reroll:** Glückwunsch <@${winner}>! Du hast nachträglich gewonnen!`);
+    }
+    if (!msg.content.startsWith("!giveaway")) return;
     if (!msg.member.roles.cache.has(TEAM_ROLE_ID)) return msg.reply("❌ Keine Rechte.");
     const args = msg.content.slice(1).match(/(?:[^\s"]+|"[^"]*")+/g)?.map(a => a.replace(/"/g, "")) || [];
     args.shift();
@@ -42,7 +79,7 @@ export function initGiveaway(client) {
     const channel = msg.mentions.channels.first() || msg.guild.channels.cache.get(args[0]);
     if (!channel) return msg.reply("❌ Kanal nicht gefunden.");
     const match = args[1].match(/^(\d+)(s|sec|m|min|h|std|d|tag|tage)$/i);
-    if (!match) return msg.reply("❌ Zeitformat ungültig (z.B. 10m, 1h).");
+    if (!match) return msg.reply("❌ Zeitformat ungültig.");
     const durationMs = parseDuration(match[1], match[2]);
     const price = args[2];
     const messageText = args[3] || "Viel Glück 🍀";
@@ -56,11 +93,18 @@ export function initGiveaway(client) {
       .setTitle(`🎁 Giveaway: ${price}`)
       .setDescription(`${messageText}\n\nEndet am: <t:${Math.floor(endTime / 1000)}:R> (<t:${Math.floor(endTime / 1000)}:f>)\nTeilnehmer: **0**\nGewinner: **${winnerCount}**`)
       .setColor(EMBED_COLOR);
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("join_giveaway")
+        .setLabel("Teilnehmen")
+        .setEmoji(GIVEAWAY_EMOJI)
+        .setStyle(ButtonStyle.Primary)
+    );
     const giveawayMsg = await channel.send({
       content: "<@&1424028650080178348>",
-      embeds: [embed] 
+      embeds: [embed],
+      components: [row]
     });
-    await giveawayMsg.react(GIVEAWAY_EMOJI);
     const giveaways = getData("activeGiveaways") || {};
     giveaways[giveawayMsg.id] = {
       channelId: channel.id,
@@ -75,21 +119,13 @@ export function initGiveaway(client) {
     await setData("activeGiveaways", giveaways);
     await msg.delete().catch(() => {});
   });
-  client.on("messageReactionAdd", async (reaction, user) => {
-    if (user.bot || reaction.emoji.name !== GIVEAWAY_EMOJI) return;
-    const giveaways = getData("activeGiveaways") || {};
-    const data = giveaways[reaction.message.id];
-    if (!data) return;
-    if (!data.participants.includes(user.id)) {
-      data.participants.push(user.id);
-      await setData("activeGiveaways", giveaways);
-    }
-    await reaction.users.remove(user.id).catch(() => {});
-  });
 }
 async function endGiveaway(client, msg, data) {
   const guild = msg.guild;
   const participants = data.participants || [];
+  const history = getData("giveawayHistory") || {};
+  history[msg.id] = data;
+  await setData("giveawayHistory", history);
   let rafflePool = [];
   for (const userId of participants) {
     rafflePool.push(userId);
@@ -108,12 +144,23 @@ async function endGiveaway(client, msg, data) {
   const endEmbed = EmbedBuilder.from(msg.embeds[0])
     .setTitle(`🎊 Giveaway beendet: ${data.price}`)
     .setDescription(`${data.messageText}\n\nBeendet: <t:${Math.floor(data.endTime / 1000)}:f>\nTeilnehmer: **${participants.length}**\nGewinner: ${winnerMentions}`);
-  await msg.edit({ embeds: [endEmbed] }).catch(() => {});
+  const disabledRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("ended")
+      .setLabel("Beendet")
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(true)
+  );
+
+  await msg.edit({ embeds: [endEmbed], components: [disabledRow] }).catch(() => {});
+
   if (winners.length > 0) {
     msg.channel.send(`🎉 Glückwunsch ${winnerMentions}! Du hast **${data.price}** gewonnen!\nErstelle ein <#${TICKET_CHANNEL_ID}> um deinen Gewinn abzuholen.`);
   } else {
     msg.channel.send("❌ Keine Teilnehmer, kein Gewinner.");
   }
+
+  // Logging Report
   const logChannel = await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
   if (logChannel) {
     const participantDetails = await Promise.all(
@@ -130,19 +177,14 @@ async function endGiveaway(client, msg, data) {
     const report = {
       giveaway_id: msg.id,
       prize: data.price,
-      host_id: data.hostId,
-      duration_seconds: Math.floor((data.endTime - data.startTime) / 1000),
-      total_participants: participants.length,
-      winners: winners,
-      booster_bonus_active: true,
       participants_list: participantDetails
     };
     const buffer = Buffer.from(JSON.stringify(report, null, 2));
     const attachment = new AttachmentBuilder(buffer, { name: `report_${msg.id}.json` });
     await logChannel.send({
-      content: `📊 **Giveaway Abschluss-Bericht**\nPreis: **${data.price}**\nTeilnehmer: **${participants.length}**\nGewinner: ${winnerMentions}`,
+      content: `📊 **Giveaway Abschluss-Bericht**\nPreis: **${data.price}**\nGewinner: ${winnerMentions}`,
       files: [attachment]
-    }).catch(console.error);
+    }).catch(() => {});
   }
 }
 function parseDuration(amount, unit) {
