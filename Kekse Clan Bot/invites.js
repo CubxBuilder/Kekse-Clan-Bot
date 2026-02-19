@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import { getData, setData } from "./storage.js";
+import { getData, setData } from "./invitesStorage.js";
 export async function initInvites(client) {
   const inviteCache = new Map();
   const TEAM_ROLE_ID = "1457906448234319922";
