@@ -5,7 +5,7 @@ import {
   ButtonBuilder, 
   ButtonStyle 
 } from "discord.js";
-import { getData, setData } from "./storage.js";
+import { getData, setData } from "./giveawayStorage.js";
 
 const GIVEAWAY_EMOJI = "🎉";
 const TEAM_ROLE_ID = "1457906448234319922";
