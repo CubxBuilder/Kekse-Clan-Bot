@@ -79,10 +79,12 @@ const client = new Client({
 client.setMaxListeners(20);
 import { initStorage } from "./storage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
+import { initInvitesStorage } from "./invitesStorage.js"
 
 client.once("ready", async () => {
   await initStorage(client)
   await initGiveawayStorage(client)
+  await initInvitesStorage(client)
   await initCounting(client)
   initModeration(client)
   registerMessageCommands(client)
