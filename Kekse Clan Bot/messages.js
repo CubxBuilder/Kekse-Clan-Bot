@@ -1,5 +1,4 @@
 import { EmbedBuilder, PermissionsBitField } from "discord.js";
-
 export function registerMessageCommands(client) {
   client.on("messageCreate", async msg => {
     if (msg.author.bot || !msg.content.startsWith("!")) return;
@@ -7,23 +6,13 @@ export function registerMessageCommands(client) {
     if (!msg.member.roles.cache.has(teamRole) && !msg.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
     const args = msg.content.slice(1).match(/(?:[^\s"]+|"[^"]*")+/g)?.map(a => a.replace(/"/g, "")) || [];
     const cmd = args.shift().toLowerCase();
-
     const deleteCmd = () => msg.delete().catch(() => {});
-
     if (cmd === "send") {
       await deleteCmd();
       const channel = msg.mentions.channels.first();
       const text = msg.content.replace(/^!send\s+<#[0-9]+>\s?/, "").trim();
       if (channel && text) await channel.send(text);
-      const LogEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL({ size: 512 }) })
-        .setDescription(`Message gesendet: ${text}`)
-        .setFooter({ text: 'Kekse Clan' })
-        .setTimestamp()
-        .setColor('#ffffff');
-      msg.channel.send({ embeds: [LogEmbed] });
     }
-
     if (cmd === "changelog") {
       await deleteCmd();
       const changelogChannel = msg.guild.channels.cache.get("1464993818968588379");
@@ -32,48 +21,23 @@ export function registerMessageCommands(client) {
       const updateList = args.map(item => `- ${item}`).join("\n");
       const messageFormat = `<@&1464994942345547857>\n**:wrench: Änderungen (${date})**\n${updateList}`;
       await changelogChannel.send(messageFormat);
-      const LogEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL({ size: 512 }) })
-        .setDescription(`Changelog gesendet:\n${updateList}`)
-        .setFooter({ text: 'Kekse Clan' })
-        .setTimestamp()
-        .setColor('#ffffff');
-      msg.channel.send({ embeds: [LogEmbed] });
     }
-
     if (cmd === "embed") {
       await deleteCmd();
       const channel = msg.mentions.channels.first();
-      // FIX: Namen für die Variablen in args vergeben
       const = args;
       if (channel && title && text) {
         const embed = new EmbedBuilder().setTitle(title).setDescription(text).setColor(color);
         await channel.send({ embeds: [embed] });
       }
-      const LogEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL({ size: 512 }) })
-        .setDescription(`Embed gesendet:\n${title}\n${text}\n${color}`)
-        .setFooter({ text: 'Kekse Clan' })
-        .setTimestamp()
-        .setColor('#ffffff');
-      msg.channel.send({ embeds: [LogEmbed] });
     }
-
     if (cmd === "dm") {
       await deleteCmd();
       const userId = args[0];
       const text = args.slice(1).join(" ");
       const user = await client.users.fetch(userId).catch(() => null);
       if (user && text) await user.send(text).catch(() => {});
-      const LogEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL({ size: 512 }) })
-        .setDescription(`DM gesendet: ${text}`)
-        .setFooter({ text: 'Kekse Clan' })
-        .setTimestamp()
-        .setColor('#ffffff');
-      msg.channel.send({ embeds: [LogEmbed] });
     }
-
     if (cmd === "news") {
       await deleteCmd();
       const channel = msg.mentions.channels.first();
@@ -89,15 +53,7 @@ export function registerMessageCommands(client) {
         return match;
       });
       await channel.send(text);
-      const LogEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL({ size: 512 }) })
-        .setDescription(`News gesendet: ${text}`)
-        .setFooter({ text: 'Kekse Clan' })
-        .setTimestamp()
-        .setColor('#ffffff');
-      msg.channel.send({ embeds: [LogEmbed] });
     }
-
     if (cmd === "reply") {
       await deleteCmd();
       const channelMention = msg.mentions.channels.first() || msg.channel;
@@ -107,13 +63,7 @@ export function registerMessageCommands(client) {
       try {
         const targetMsg = await channelMention.messages.fetch(msgId);
         targetMsg.system ? await channelMention.send(text) : await targetMsg.reply(text);
-        const LogEmbed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL({ size: 512 }) })
-          .setDescription(`Reply gesendet: ${text}`)
-          .setFooter({ text: 'Kekse Clan' })
-          .setTimestamp()
-          .setColor('#ffffff');
-        msg.channel.send({ embeds: [LogEmbed] });
+      
       } catch (err) {
         await msg.channel.send("❌ Nachricht nicht gefunden.").then(m => setTimeout(() => m.delete(), 3000));
       }
