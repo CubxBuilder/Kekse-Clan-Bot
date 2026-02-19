@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import { getData, setData } from "./storage.js";
+import { getData, setData } from "./pollsStorage.js";
 
 const TEAM_ROLE_ID = "1457906448234319922";
 
