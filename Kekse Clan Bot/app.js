@@ -80,7 +80,7 @@ client.setMaxListeners(20);
 import { initStorage } from "./countingStorage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
 import { initInvitesStorage } from "./invitesStorage.js"
-import { initPollsStorage } from "./pollsStorage"
+import { initPollsStorage } from "./pollsStorage.js"
 import { initTicketsStorage } from "./ticketsStorage.js"
 import { initRemindersStorage } from "./remindersStorage.js"
 
