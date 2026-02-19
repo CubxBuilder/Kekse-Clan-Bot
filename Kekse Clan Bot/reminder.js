@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { getData, setData } from "./storage.js";
+import { getData, setData } from "./ticketsStorage.js";
 
 export function initReminder(client) {
 
