@@ -71,13 +71,21 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildAuditLogEntryCreate,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildInvites,
+    GatewayIntentBits.GuildPresences
   ],
-  partials: [Partials.Channel, Partials.Message, Partials.Reaction]
-})
+  partials: [
+    Partials.Channel,
+    Partials.Message,
+    Partials.Reaction,
+    Partials.GuildMember,
+    Partials.User,
+    Partials.ThreadMember
+  ]
+});
 client.setMaxListeners(20);
 import { initCountingStorage } from "./countingStorage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
