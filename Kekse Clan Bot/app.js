@@ -19,6 +19,7 @@ import { initVerification } from "./verification.js"
 import { initForumWatch } from "./nameevent.js"
 import { initVoiceChannels } from "./voicechannels.js"
 import { initInvites } from "./invites.js"
+import { initAuditLogs } from "./auditLog.js"
 import fs from "fs"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -109,6 +110,7 @@ client.once("ready", async () => {
   initForumWatch(client)
   initVoiceChannels(client)
   initInvites(client)
+  initAuditLogs(client)
   
   client.user.setPresence({
     activities: [{ name: "!help", type: 0 }],
