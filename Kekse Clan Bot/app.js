@@ -2,6 +2,7 @@ import { Client, GatewayIntentBits, Partials } from "discord.js"
 import "dotenv/config"
 import path from "path"
 import express from "express"
+import cors from "cors" // NEU: CORS für die API
 import { fileURLToPath } from "url"
 import { initCounting } from "./counting.js"
 import { initModeration } from "./moderation.js"
@@ -20,12 +21,11 @@ import { initForumWatch } from "./nameevent.js"
 import { initVoiceChannels } from "./voicechannels.js"
 import { initInvites } from "./invites.js"
 import { initAuditLogs } from "./auditLog.js"
-import { initProfileStatus } from "./profile.js"
 import fs from "fs"
 
+// --- LOGGING SETUP ---
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
 const LOG_DIR = path.join(__dirname, "log-files");
 if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
 
@@ -47,26 +47,33 @@ function writeToFile(prefix, args) {
   fs.appendFile(getLogFile(), logEntry, () => {})
 }
 
-console.log = (...args) => {
-  originalLog(...args);
-  writeToFile("INFO", args);
-};
+console.log = (...args) => { originalLog(...args); writeToFile("INFO", args); };
+console.error = (...args) => { originalError(...args); writeToFile("ERROR", args); };
 
-console.error = (...args) => {
-  originalError(...args);
-  writeToFile("ERROR", args);
-};
-
+// --- EXPRESS SETUP ---
 const app = express()
+app.use(cors()) // WICHTIG: Erlaubt deiner Website den Zugriff auf die API
 app.use("/Kekse-Clan-Bot", express.static(path.join(__dirname, "public")))
+
+// Variable für deinen Status
+let myStatusData = { status: "offline", activity: "" };
+const MY_ID = "1151971830983311441";
+
+// API Endpunkt für dein Profil
+app.get('/api/status', (req, res) => {
+  res.json(myStatusData);
+});
+
+app.get('/', (req, res) => {
+  res.send('Bot API is running!');
+})
+
 const port = process.env.PORT || 4000
 app.listen(port, () => {
   console.log(`Server läuft auf Port ${port}`)
 })
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
 
+// --- DISCORD CLIENT SETUP ---
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -76,18 +83,17 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildInvites,
-    GatewayIntentBits.GuildPresences
+    GatewayIntentBits.GuildPresences // Wichtig für Status & Activity!
   ],
   partials: [
-    Partials.Channel,
-    Partials.Message,
-    Partials.Reaction,
-    Partials.GuildMember,
-    Partials.User,
-    Partials.ThreadMember
+    Partials.Channel, Partials.Message, Partials.Reaction, 
+    Partials.GuildMember, Partials.User, Partials.ThreadMember
   ]
 });
+
 client.setMaxListeners(20);
+
+// Storage Imports
 import { initCountingStorage } from "./countingStorage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
 import { initInvitesStorage } from "./invitesStorage.js"
@@ -96,39 +102,52 @@ import { initTicketsStorage } from "./ticketsStorage.js"
 import { initRemindersStorage } from "./remindersStorage.js"
 import { initModerationStorage } from "./moderationStorage.js"
 
+// --- PRESENCE LOGIK ---
+function updateMyPresence(presence) {
+    if (!presence || presence.userId !== MY_ID) return;
+    
+    // Activity finden (Typ 4 ist der Custom Status Text, den ignorieren wir für den Namen)
+    const active = presence.activities.find(a => a.type !== 4);
+    
+    myStatusData = {
+        status: presence.status, // online, idle, dnd, offline
+        activity: active ? active.name : ""
+    };
+}
+
+client.on("presenceUpdate", (old, newPres) => {
+    updateMyPresence(newPres);
+});
+
 client.once("ready", async () => {
-  await initCountingStorage(client)
-  await initGiveawayStorage(client)
-  await initInvitesStorage(client)
-  await initPollsStorage(client)
-  await initTicketsStorage(client)
-  await initRemindersStorage(client)
-  await initModerationStorage(client)
-  await initCounting(client)
-  initModeration(client)
-  registerMessageCommands(client)
-  initTickets(client)
-  initGiveaway(client)
-  initPing(client)
-  await initIds(client)
-  initReminder(client)
-  initReactions(client)
-  initHelp(client)
-  initTicketCategory(client)
-  initPoll(client)
-  initVerification(client)
-  initForumWatch(client)
-  initVoiceChannels(client)
-  initInvites(client)
-  initAuditLogs(client)
-  initProfileStatus(client, app)
+  // Init Storages
+  await initCountingStorage(client); await initGiveawayStorage(client);
+  await initInvitesStorage(client); await initPollsStorage(client);
+  await initTicketsStorage(client); await initRemindersStorage(client);
+  await initModerationStorage(client);
+
+  // Init Modules
+  await initCounting(client); initModeration(client); registerMessageCommands(client);
+  initTickets(client); initGiveaway(client); initPing(client);
+  await initIds(client); initReminder(client); initReactions(client);
+  initHelp(client); initTicketCategory(client); initPoll(client);
+  initVerification(client); initForumWatch(client); initVoiceChannels(client);
+  initInvites(client); initAuditLogs(client);
+
+  // Initialer Status Check
+  const guild = client.guilds.cache.first();
+  if (guild) {
+      const member = await guild.members.fetch(MY_ID).catch(() => null);
+      if (member) updateMyPresence(member.presence);
+  }
+
   client.user.setPresence({
     activities: [{ name: "!help", type: 0 }],
     status: "online"
   });
   console.log(`Bot online: ${client.user.tag}`);
 });
+
 client.on("error", console.error)
 client.on("warn", console.warn)
-console.log("TOKEN:", process.env.BOT_TOKEN ? "OK" : "MISSING")
 client.login(process.env.BOT_TOKEN)
