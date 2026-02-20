@@ -20,6 +20,7 @@ import { initForumWatch } from "./nameevent.js"
 import { initVoiceChannels } from "./voicechannels.js"
 import { initInvites } from "./invites.js"
 import { initAuditLogs } from "./auditLog.js"
+import { initProfileStatus } from "./profile.js"
 import fs from "fs"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -120,7 +121,7 @@ client.once("ready", async () => {
   initVoiceChannels(client)
   initInvites(client)
   initAuditLogs(client)
-  
+  initProfileStatus(client, app)
   client.user.setPresence({
     activities: [{ name: "!help", type: 0 }],
     status: "online"
