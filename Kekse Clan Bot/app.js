@@ -105,15 +105,22 @@ import { initModerationStorage } from "./moderationStorage.js"
 // --- PRESENCE LOGIK ---
 function updateMyPresence(presence) {
     if (!presence || presence.userId !== MY_ID) return;
-    
-    // Activity finden (Typ 4 ist der Custom Status Text, den ignorieren wir für den Namen)
-    const active = presence.activities.find(a => a.type !== 4);
-    
+
     myStatusData = {
-        status: presence.status, // online, idle, dnd, offline
-        activity: active ? active.name : ""
+        status: presence.status,
+        activities: presence.activities.map(act => ({
+            name: act.name,
+            type: act.type, // 0: Game, 2: Listening, etc.
+            details: act.details || "",
+            state: act.state || "",
+            // Generiert die URL für das Icon (Spiel-Cover oder Spotify-Album)
+            image: act.assets ? act.assets.largeImageURL({ size: 128 }) : null,
+            start: act.timestamps?.start ? act.timestamps.start.getTime() : null,
+            end: act.timestamps?.end ? act.timestamps.end.getTime() : null
+        }))
     };
 }
+
 
 client.on("presenceUpdate", (old, newPres) => {
     updateMyPresence(newPres);
