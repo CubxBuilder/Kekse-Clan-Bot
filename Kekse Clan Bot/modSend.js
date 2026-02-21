@@ -3,7 +3,7 @@ import { AuditLogEvent } from "discord.js";
 
 const PROBOT_LOG_CHANNEL_ID = "1423413348220796991";
 
-export function initModeration(client) {
+export function initModSend(client) {
   client.on("guildAuditLogEntryCreate", async (entry, guild) => {
     const { action, targetId, reason, executorId } = entry;
     if (executorId === client.user.id) return; 
