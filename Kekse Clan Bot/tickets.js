@@ -127,6 +127,10 @@ export function initTickets(client) {
     try {
       await channel.setParent(ARCHIVE_CATEGORY_ID, { lockPermissions: true });
       await channel.permissionOverwrites.delete(ticket.userId).catch(() => {});
+      await channel.permissionOverwrites.create(TEAM_ROLE_ID, {
+          ViewChannel: true,
+          SendMessages: true
+      });
 
       await channel.send({ content: `✅ **Ticket archiviert.**\nErstellt von: ${ticket.username}\nID: ${ticket.idString}` });
       
