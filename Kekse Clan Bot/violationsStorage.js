@@ -2,7 +2,7 @@ import { EmbedBuilder } from "discord.js";
 const STORAGE_CHANNEL_ID = "1474153032139931720";
 let storageMessage = null;
 let data = {};
-export async function initCountingStorage(client) {
+export async function initViolationsStorage(client) {
   const channel = await client.channels.fetch(STORAGE_CHANNEL_ID).catch(() => null);
   if (!channel || !channel.isTextBased()) return;
   const messages = await channel.messages.fetch({ limit: 20 });
