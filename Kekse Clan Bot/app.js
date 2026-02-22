@@ -2,30 +2,19 @@ import { Client, GatewayIntentBits, Partials } from "discord.js"
 import "dotenv/config"
 import path from "path"
 import express from "express"
-import cors from "cors" // NEU: CORS für die API
+import cors from "cors"
 import { fileURLToPath } from "url"
 import { initCounting } from "./counting.js"
-import { initModeration } from "./moderation.js"
 import { registerMessageCommands } from "./messages.js"
 import { initTickets } from "./tickets.js"
 import { initGiveaway } from "./giveaway.js"
 import { initPing } from "./ping.js"
-import { initIds } from "./ids.js"
 import { initReactions } from "./reactions.js"
 import { initHelp } from "./help.js"
 import { initTicketCategory } from "./ticket_category.js"
 import { initPoll } from "./poll.js"
-import { initVerification } from "./verification.js"
 import { initForumWatch } from "./nameevent.js"
 import { initVoiceChannels } from "./voicechannels.js"
-import { initInvites } from "./invites.js"
-import { initAuditLogs } from "./auditLog.js"
-import { initViolationsStorage } from "./violationsStorage.js";
-import { sendPunishmentInfo } from "./info.js";
-import { initModSend } from "./modSend.js";
-import { clear } from "./clear.js";
-import { warning } from "./warning.js";
-import { violations } from "./violations.js";
 import fs from "fs"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -83,10 +72,8 @@ const client = new Client({
 client.setMaxListeners(20);
 import { initCountingStorage } from "./countingStorage.js"
 import { initGiveawayStorage } from "./giveawayStorage.js"
-import { initInvitesStorage } from "./invitesStorage.js"
 import { initPollsStorage } from "./pollsStorage.js"
 import { initTicketsStorage } from "./ticketsStorage.js"
-import { initModerationStorage } from "./moderationStorage.js"
 function updateMyPresence(presence) {
     if (!presence || presence.userId !== MY_ID) return;
     myStatusData = {
@@ -107,19 +94,13 @@ client.on("presenceUpdate", (old, newPres) => {
 });
 client.once("ready", async () => {
   await initCountingStorage(client); await initGiveawayStorage(client);
-  await initInvitesStorage(client); await initPollsStorage(client);
+  await initPollsStorage(client);
   await initTicketsStorage(client);
-  await initModerationStorage(client); await initViolationsStorage(client);
-  await initCounting(client); initModeration(client); registerMessageCommands(client);
+  await initCounting(client); registerMessageCommands(client);
   initTickets(client); initGiveaway(client); initPing(client);
-  await initIds(client); initReactions(client);
+  initReactions(client);
   initHelp(client); initTicketCategory(client); initPoll(client);
-  initVerification(client); initForumWatch(client); initVoiceChannels(client);
-  initInvites(client); initAuditLogs(client);
-  clear(client);
-  warning(client);
-  initModSend(client);
-  violations(client);
+  initForumWatch(client); initVoiceChannels(client);
   const guild = client.guilds.cache.first();
   if (guild) {
       const member = await guild.members.fetch(MY_ID).catch(() => null);
