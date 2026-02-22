@@ -11,7 +11,6 @@ import { initTickets } from "./tickets.js"
 import { initGiveaway } from "./giveaway.js"
 import { initPing } from "./ping.js"
 import { initIds } from "./ids.js"
-import { initReminder } from "./reminder.js"
 import { initReactions } from "./reactions.js"
 import { initHelp } from "./help.js"
 import { initTicketCategory } from "./ticket_category.js"
@@ -21,9 +20,7 @@ import { initForumWatch } from "./nameevent.js"
 import { initVoiceChannels } from "./voicechannels.js"
 import { initInvites } from "./invites.js"
 import { initAuditLogs } from "./auditLog.js"
-import { initSupport } from "./support.js";
 import { initViolationsStorage } from "./violationsStorage.js";
-import { initDmTicketsStorage } from "./dmTicketsStorage.js";
 import { sendPunishmentInfo } from "./info.js";
 import { initModSend } from "./modSend.js";
 import { clear } from "./clear.js";
@@ -89,7 +86,6 @@ import { initGiveawayStorage } from "./giveawayStorage.js"
 import { initInvitesStorage } from "./invitesStorage.js"
 import { initPollsStorage } from "./pollsStorage.js"
 import { initTicketsStorage } from "./ticketsStorage.js"
-import { initRemindersStorage } from "./remindersStorage.js"
 import { initModerationStorage } from "./moderationStorage.js"
 function updateMyPresence(presence) {
     if (!presence || presence.userId !== MY_ID) return;
@@ -112,16 +108,14 @@ client.on("presenceUpdate", (old, newPres) => {
 client.once("ready", async () => {
   await initCountingStorage(client); await initGiveawayStorage(client);
   await initInvitesStorage(client); await initPollsStorage(client);
-  await initTicketsStorage(client); await initRemindersStorage(client);
+  await initTicketsStorage(client);
   await initModerationStorage(client); await initViolationsStorage(client);
-  await initDmTicketsStorage(client)
   await initCounting(client); initModeration(client); registerMessageCommands(client);
   initTickets(client); initGiveaway(client); initPing(client);
-  await initIds(client); initReminder(client); initReactions(client);
+  await initIds(client); initReactions(client);
   initHelp(client); initTicketCategory(client); initPoll(client);
   initVerification(client); initForumWatch(client); initVoiceChannels(client);
   initInvites(client); initAuditLogs(client);
-  initSupport(client);
   clear(client);
   warning(client);
   initModSend(client);
