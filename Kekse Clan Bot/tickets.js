@@ -100,7 +100,7 @@ export function initTickets(client) {
 
       const greetings = {
         Support: `Hey <@${user.id}>, bitte beschreibe dein Anliegen genauer.`,
-        Abholung: `Hey <@${user.id}>, wir benötigen deinen Minecraft Namen und die Info zum Gewinn.`,
+        Abholung: `Hey <@${user.id}>, wir benötigen deinen **Minecraft Namen** und die **Info zum Gewinn**.`,
         Bewerbung: `Hey <@${user.id}>, ein Teammitglied wird sich in Kürze melden.`
       };
 
