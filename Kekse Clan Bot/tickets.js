@@ -4,6 +4,7 @@ import { getData, setData } from "./ticketsStorage.js";
 const ARCHIVE_CATEGORY_ID = "1465452886657077593";
 const TEAM_ROLE_ID = "1457906448234319922";
 const LOG_CHANNEL_ID = "1423413348220796991";
+const ADMIN_ROLE_ID = "1423427747103113307";
 
 const CATEGORY_EMOJI = {
   Support: "⚙️",
@@ -23,6 +24,16 @@ function loadTickets() {
   const stored = getData("tickets");
   if (stored) ticketData = stored;
 }
+function isBlocked(userId) {
+  const blocked = getData("blocked_users") || {};
+  if (!blocked[userId]) return false;
+  if (Date.now() > blocked[userId].until) {
+    delete blocked[userId];
+    setData("blocked_users", blocked);
+    return false;
+  }
+  return true;
+}
 
 async function saveTickets() {
   await setData("tickets", ticketData);
@@ -30,8 +41,6 @@ async function saveTickets() {
 
 export function initTickets(client) {
   loadTickets();
-
-  // Hilfsfunktion für Kekse Clan Logs
   const sendKekseLog = async (action, user, details) => {
     const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
     if (!logChannel) return;
@@ -65,16 +74,28 @@ export function initTickets(client) {
 
     await setData("ticket_panel", { messageId: msg.id });
   }
-
+  async function blockUser(userId, username, durationMs = 7 * 24 * 60 * 60 * 1000) {
+    const blocked = getData("blocked_users") || {};
+    blocked[userId] = {
+      username,
+      until: Date.now() + durationMs,
+      reason: "Spam / Limit überschritten"
+    };
+    await setData("blocked_users", blocked);
+  }
   async function createTicket(category, user, guild) {
     const alreadyOpen = Object.values(ticketData.tickets).some(t => t.userId === user.id && t.category === category);
     if (alreadyOpen) return;
-
+    if (isBlocked(user.id)) return;
     const id = ++ticketData.lastId;
     const idString = id.toString().padStart(4, "0");
-    
+    const openTickets = Object.values(ticketData.tickets).filter(t => t.userId === user.id);
     const parentId = CATEGORY_CHANNELS[category];
-    
+    const recentTickets = openTickets.filter(t => (Date.now() - t.created) < 60000);
+    if (recentTickets.length >= 2) {
+      await blockUser(user.id, user.username);
+      return;
+    }
     try {
       const channel = await guild.channels.create({
         name: `${CATEGORY_EMOJI[category]}-${category}-${idString}`,
@@ -134,7 +155,6 @@ export function initTickets(client) {
 
       await channel.send({ content: `✅ **Ticket archiviert.**\nErstellt von: ${ticket.username}\nID: ${ticket.idString}` });
       
-      // Log: Ticket Schließung
       await sendKekseLog("Ticket Archiviert", moderator, `**Besitzer:** ${ticket.username} (${ticket.userId})\n**Kategorie:** ${ticket.category}\n**Kanal:** ${channel.name}`);
 
       delete ticketData.tickets[ticket.idString];
@@ -176,8 +196,23 @@ export function initTickets(client) {
       await createTicket(cat, msg.author, msg.guild);
     }
 
+    if (cmd === "delete" && msg.member.roles.cache.has(ADMIN_ROLE_ID)) {
+      await msg.reply("🗑️ Kanal wird in 5 Sekunden gelöscht...");
+      setTimeout(() => msg.channel.delete().catch(() => {}), 5000);
+    }
     if (cmd === "close" && msg.member.roles.cache.has(TEAM_ROLE_ID)) {
       await closeTicket(msg.channel, msg.author);
+    }
+    if (cmd === "block" && msg.member.roles.cache.has(TEAM_ROLE_ID)) {
+      const target = msg.mentions.users.first() || { id: args[0] };
+      if (!target.id) return msg.reply("❌ User-ID oder Mention fehlt.");  
+      let duration = 7 * 24 * 60 * 60 * 1000;
+      if (args[1]) {
+        const customDays = parseInt(args[1]);
+        if (!isNaN(customDays)) duration = customDays * 24 * 60 * 60 * 1000;
+      }
+      await blockUser(target.id, target.username || "Unbekannt", duration);
+      msg.reply(`✅ User <@${target.id}> wurde für ${args[1] || "7"} Tage für Tickets gesperrt.`);
     }
   });
 }
