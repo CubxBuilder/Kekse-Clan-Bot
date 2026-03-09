@@ -69,7 +69,7 @@ export function initGiveaway(client) {
 
     const args = msg.content.slice(1).match(/(?:[^\s"]+|"[^"]*")+/g)?.map(a => a.replace(/"/g, "")) || [];
     args.shift();
-    if (args.length < 3) return msg.reply("Syntax: `!giveaway #channel 1h \"Preis\" \"Text\" [winners=2]`");
+    if (args.length < 3) return msg.reply("Syntax: `!giveaway #channel 1h \"Preis\" \"Text\" winners=2`");
 
     const channel = msg.mentions.channels.first() || msg.guild.channels.cache.get(args[0]);
     if (!channel) return msg.reply("❌ Kanal nicht gefunden.");
